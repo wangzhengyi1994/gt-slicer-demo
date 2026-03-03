@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Slicer - GT HCF600</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #3A4F6A;
+            --primary-dark: #2C3E50;
+            --bg-dark: #1E293B;
+            --bg-darker: #0F172A;
+            --bg-panel: #1E293B;
+            --border: #334155;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent: #10B981;
+            --accent-orange: #F59E0B;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            height: 44px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 24px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+        
+        .tab {
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .tab.active {
+            background: var(--accent-orange);
+            color: white;
+        }
+        
+        .top-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-slice {
+            background: var(--text-secondary);
+            color: white;
+        }
+        
+        .btn-print {
+            background: var(--accent-orange);
+            color: white;
+        }
+        
+        /* Material Bar */
+        .material-bar {
+            height: 56px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+        }
+        
+        .printer-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            min-width: 140px;
+        }
+        
+        .printer-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--text-secondary);
+            border-radius: 4px;
+        }
+        
+        .material-slots {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .material-slot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            min-width: 120px;
+        }
+        
+        .material-slot.active {
+            border-color: var(--accent);
+        }
+        
+        .material-num {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .material-num.yellow { background: #FCD34D; color: #92400E; }
+        .material-num.gray { background: var(--text-muted); color: white; }
+        
+        .material-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .material-name {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .material-status {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 100px);
+        }
+        
+        /* Left Panel - Simplified */
+        .left-panel {
+            width: 60px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 8px;
+        }
+        
+        .tool-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        
+        .tool-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* Center - 3D View */
+        .center-panel {
+            flex: 1;
+            background: var(--bg-darker);
+            position: relative;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .view-controls {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .view-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        
+        .view-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Right Panel - Parameters */
+        .right-panel {
+            width: 280px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .param-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .param-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .param-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .param-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+        
+        .param-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+        }
+        
+        .param-arrow {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        
+        .panel-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        /* Bottom Toolbar */
+        .bottom-toolbar {
+            height: 40px;
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 4px;
+        }
+        
+        .bottom-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .bottom-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        
+        .bottom-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="2" width="8" height="20" fill="currentColor"/>
+                <rect x="14" y="2" width="8" height="20" fill="currentColor"/>
+            </svg>
+            GT SLICER
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active">准备</div>
+            <div class="tab">预览</div>
+            <div class="tab">监控</div>
+        </div>
+        
+        <div class="top-actions">
+            <button class="btn btn-slice">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M2 8h12M2 5h12M2 11h12"/>
+                </svg>
+                切片单盘
+            </button>
+            <button class="btn btn-print">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 14h8M4 14V6h8v8"/>
+                </svg>
+                打印单盘
+            </button>
+        </div>
+    </div>
+    
+    <!-- Material Bar -->
+    <div class="material-bar">
+        <div class="printer-select">
+            <div class="printer-icon"></div>
+            <div>
+                <div style="font-size: 12px; font-weight: 500;">GT HCF 600</div>
+                <div style="font-size: 11px; color: var(--text-muted);">440×320×400 mm</div>
+            </div>
+        </div>
+        
+        <div class="material-slots">
+            <div class="material-slot active">
+                <div class="material-num yellow">1</div>
+                <div class="material-info">
+                    <div class="material-name">Generic PLA</div>
+                    <div class="material-status">empty</div>
+                </div>
+            </div>
+            <div class="material-slot">
+                <div class="material-num gray">2</div>
+                <div class="material-info">
+                    <div class="material-name">Generic PLA</div>
+                    <div class="material-status">empty</div>
+                </div>
+            </div>
+            <div class="material-slot">
+                <div class="material-num gray">3</div>
+                <div class="material-info">
+                    <div class="material-name">Generic PLA</div>
+                    <div class="material-status">empty</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Tools -->
+        <div class="left-panel">
+            <div class="tool-btn" title="移动">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+            </div>
+            <div class="tool-btn" title="旋转">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </div>
+            <div class="tool-btn" title="缩放">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 3L3 21M3 3l18 18"/>
+                </svg>
+            </div>
+            <div class="tool-btn" title="镜像">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 4v16M4 8l8-4 8 4M4 16l8 4 8-4"/>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- Center 3D View -->
+        <div class="center-panel">
+            <div id="canvas-container"></div>
+            
+            <div class="view-controls">
+                <div class="view-btn" title="正视图">前</div>
+                <div class="view-btn" title="俯视图">上</div>
+                <div class="view-btn" title="侧视图">侧</div>
+            </div>
+        </div>
+        
+        <!-- Right Parameters -->
+        <div class="right-panel">
+            <div class="panel-header">打印设置</div>
+            
+            <div class="param-list">
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <circle cx="8" cy="8" r="6"/>
+                            <circle cx="8" cy="8" r="2"/>
+                        </svg>
+                        质量
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path d="M8 2v12M2 8h12"/>
+                        </svg>
+                        墙
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <rect x="2" y="2" width="12" height="12"/>
+                            <path d="M2 6h12M2 10h12"/>
+                        </svg>
+                        顶/底层
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path d="M2 4h12M2 8h12M2 12h12"/>
+                        </svg>
+                        填充
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path d="M2 8h4l2-3 4 6 2-3h2"/>
+                        </svg>
+                        速度
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path d="M8 3v10M5 10l3 3 3-3"/>
+                        </svg>
+                        移动
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <path d="M4 12h8M4 12V6l3-3 3 3v6"/>
+                        </svg>
+                        支撑
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <rect x="2" y="10" width="12" height="4"/>
+                            <path d="M4 10V6h8v4"/>
+                        </svg>
+                        打印平台附着
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+                <div class="param-item">
+                    <div class="param-name">
+                        <svg class="param-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <circle cx="8" cy="8" r="5"/>
+                            <path d="M8 5v3l2 2"/>
+                        </svg>
+                        冷却
+                    </div>
+                    <span class="param-arrow">›</span>
+                </div>
+            </div>
+            
+            <div class="panel-footer">
+                <div class="back-btn">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M10 12L6 8l4-4"/>
+                    </svg>
+                    推荐
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Toolbar -->
+    <div class="bottom-toolbar">
+        <div class="bottom-btn">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M2 4h12M2 8h12M2 12h12"/>
+            </svg>
+            网格
+        </div>
+        <div class="bottom-btn">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M4 4h8v8H4z"/>
+            </svg>
+            平台纹理
+        </div>
+        <div class="bottom-divider"></div>
+        <div class="bottom-btn">俯视图</div>
+        <div class="bottom-btn">前视图</div>
+        <div class="bottom-btn">侧视图</div>
+        <div class="bottom-btn">透视图</div>
+        <div class="bottom-divider"></div>
+        <div class="bottom-btn">全屏</div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Basic 3D scene setup
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0F172A);
+        
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 80, 120);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+        
+        // Grid
+        const gridHelper = new THREE.GridHelper(220, 44, 0x334155, 0x334155);
+        scene.add(gridHelper);
+        
+        // Print bed
+        const bedGeometry = new THREE.BoxGeometry(220, 2, 220);
+        const bedMaterial = new THREE.MeshPhongMaterial({ color: 0x1E293B });
+        const bed = new THREE.Mesh(bedGeometry, bedMaterial);
+        bed.position.y = -1;
+        bed.receiveShadow = true;
+        scene.add(bed);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        directionalLight.position.set(50, 100, 50);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>

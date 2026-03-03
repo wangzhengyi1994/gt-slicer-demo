@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Slicer - 3D Print Slicer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+</head>
+<body class="theme-dark">
+
+    <!-- Top Menu Bar -->
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect x="2" y="2" width="10" height="24" fill="#7B2FD4"/>
+                    <rect x="16" y="2" width="10" height="24" fill="#7B2FD4"/>
+                    <rect x="8" y="10" width="12" height="4" fill="#7B2FD4"/>
+                </svg>
+                <span class="logo-text">GT SLICER</span>
+            </div>
+            <nav class="menu-bar">
+                <div class="menu-item" data-menu="file">
+                    文件 (F)
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 2h7l3 3v9H3z"/><path d="M10 2v3h3"/></svg>新建项目</span> <span class="shortcut">Ctrl+N</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 4h3l1-2h4l1 2h3v10H2z"/></svg>打开文件</span> <span class="shortcut">Ctrl+O</span></div>
+                        <div class="dropdown-item has-submenu"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2.5 1.5"/></svg>最近打开</span> <span class="arrow">›</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 2h10v12H3z"/><path d="M5 8h6M8 5v6"/></svg>保存项目</span> <span class="shortcut">Ctrl+S</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 2h10v12H3z"/><path d="M6 8h4M8 6v4"/><path d="M6 12h4"/></svg>另存为</span> <span class="shortcut">Ctrl+Shift+S</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 11V3M5 6l3-3 3 3"/><path d="M3 11v2h10v-2"/></svg>导入</span> <span class="shortcut">Ctrl+I</span></div>
+                        <div class="dropdown-item" data-modal="exportModal"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 3v8M5 8l3 3 3-3"/><path d="M3 11v2h10v-2"/></svg>导出</span> <span class="shortcut">Ctrl+E</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 4l8 8M12 4l-8 8"/></svg>退出</span> <span class="shortcut">Ctrl+Q</span></div>
+                    </div>
+                </div>
+                <div class="menu-item" data-menu="edit">
+                    编辑 (E)
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 8c0-3 2-5 5-5"/><path d="M5 5L3 3l-1 3"/></svg>撤销 (U)</span> <span class="shortcut">Ctrl+Z</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M13 8c0-3-2-5-5-5"/><path d="M11 5l2-2 1 3"/></svg>重做 (R)</span> <span class="shortcut">Ctrl+Y</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" stroke-dasharray="2 1"/></svg>全选</span> <span class="shortcut">Ctrl+A</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>自动排列</span> <span class="shortcut">Ctrl+R</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="4" y="4" width="8" height="8"/><path d="M4 12V4h8" transform="translate(-2,-2)"/></svg>复制所选</span> <span class="shortcut">Ctrl+M</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 5h8l-.5 9h-7z"/><path d="M6 3h4v2H6z"/><path d="M3 5h10"/></svg>删除所选</span> <span class="shortcut">Del</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" data-modal="confirmModal" data-confirm-title="清空打印平台" data-confirm-text="是否确认清空打印平台上的所有模型？此操作无法撤销。"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 13h12M2 13V7h12v6"/><path d="M5 10h6"/></svg>清空打印平台</span> <span class="shortcut">Ctrl+E</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 3v10M5 6l3-3 3 3M5 10l3 3 3-3"/></svg>重置所有模型位置</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg>重置所有模型旋转</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="10" height="10"/><path d="M3 8h10M8 3v10"/></svg>编组 (G)</span> <span class="shortcut">Ctrl+G</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 4h8v8H4z"/><path d="M8 4v8"/></svg>合并 (M)</span> <span class="shortcut">Ctrl+Alt+G</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/><path d="M7 5h2M5 7v2"/></svg>取消编组</span> <span class="shortcut">Ctrl+Shift+G</span></div>
+                    </div>
+                </div>
+                <div class="menu-item" data-menu="view">
+                    视图 (V)
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item has-submenu"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 8c2-4 10-4 12 0-2 4-10 4-12 0z"/><circle cx="8" cy="8" r="2.5"/></svg>视角</span> <span class="arrow">›</span></div>
+                        <div class="dropdown-item has-submenu"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="3" width="12" height="9"/><circle cx="8" cy="7.5" r="2"/><path d="M3 11l3-2 2 1 3-2.5 2 2"/></svg>相机视图</span> <span class="arrow">›</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 4h12M2 8h12M2 12h12M4 2v12M8 2v12M12 2v12"/></svg>显示网格</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2v12M2 8h12"/><path d="M3 3l3 3M10 3l-3 3" opacity="0.4"/></svg>显示坐标轴</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 5V3h2M11 3h2v2M13 11v2h-2M5 13H3v-2"/></svg>全屏</span> <span class="shortcut">F11</span></div>
+                    </div>
+                </div>
+                <div class="menu-item" data-menu="settings">
+                    设置 (S)
+                    <div class="dropdown-menu">
+                        <!-- 第一级：挤出机列表 -->
+                        <div class="dropdown-item has-submenu extruder-item active-extruder">Resin Extr 1 <span class="arrow">›</span>
+                            <div class="submenu">
+                                <!-- 第二级：喷嘴/耗材/操作 -->
+                                <div class="dropdown-item has-submenu">喷嘴 <span class="arrow">›</span>
+                                    <div class="submenu">
+                                        <!-- 第三级：喷嘴尺寸 -->
+                                        <div class="dropdown-item">0.2 mm</div>
+                                        <div class="dropdown-item selected-mark">0.4 mm ✓</div>
+                                        <div class="dropdown-item">0.6 mm</div>
+                                        <div class="dropdown-item">0.8 mm</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item has-submenu">耗材 (M) <span class="arrow">›</span>
+                                    <div class="submenu submenu-brands">
+                                        <!-- 第三级：耗材品牌列表 -->
+                                        <div class="dropdown-item selected-mark">通用 ✓</div>
+                                        <div class="dropdown-item">3D-Fuel</div>
+                                        <div class="dropdown-item">Best Filament</div>
+                                        <div class="dropdown-item">Chromatik</div>
+                                        <div class="dropdown-item">DSM</div>
+                                        <div class="dropdown-item">eMotionTech</div>
+                                        <div class="dropdown-item">Eryone</div>
+                                        <div class="dropdown-item">eSUN</div>
+                                        <div class="dropdown-item">Extrudr</div>
+                                        <div class="dropdown-item">FABtotum</div>
+                                        <div class="dropdown-item">FDplast</div>
+                                        <div class="dropdown-item">Fiberlogy HD</div>
+                                        <div class="dropdown-item">Filo3D</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item">设为主挤出机</div>
+                                <div class="dropdown-item">关闭挤出机</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-item has-submenu extruder-item">Fiber Extr <span class="arrow">›</span>
+                            <div class="submenu">
+                                <div class="dropdown-item has-submenu">喷嘴 <span class="arrow">›</span>
+                                    <div class="submenu">
+                                        <div class="dropdown-item selected-mark">0.4 mm ✓</div>
+                                        <div class="dropdown-item">0.6 mm</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item has-submenu">耗材 (M) <span class="arrow">›</span>
+                                    <div class="submenu submenu-brands">
+                                        <div class="dropdown-item selected-mark">通用 ✓</div>
+                                        <div class="dropdown-item">3D-Fuel</div>
+                                        <div class="dropdown-item">Best Filament</div>
+                                        <div class="dropdown-item">Chromatik</div>
+                                        <div class="dropdown-item">DSM</div>
+                                        <div class="dropdown-item">eMotionTech</div>
+                                        <div class="dropdown-item">Eryone</div>
+                                        <div class="dropdown-item">eSUN</div>
+                                        <div class="dropdown-item">Extrudr</div>
+                                        <div class="dropdown-item">FABtotum</div>
+                                        <div class="dropdown-item">FDplast</div>
+                                        <div class="dropdown-item">Fiberlogy HD</div>
+                                        <div class="dropdown-item">Filo3D</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item">设为主挤出机</div>
+                                <div class="dropdown-item">关闭挤出机</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-item has-submenu extruder-item">Resin Extr 2 <span class="arrow">›</span>
+                            <div class="submenu">
+                                <div class="dropdown-item has-submenu">喷嘴 <span class="arrow">›</span>
+                                    <div class="submenu">
+                                        <div class="dropdown-item">0.2 mm</div>
+                                        <div class="dropdown-item selected-mark">0.4 mm ✓</div>
+                                        <div class="dropdown-item">0.6 mm</div>
+                                        <div class="dropdown-item">0.8 mm</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item has-submenu">耗材 (M) <span class="arrow">›</span>
+                                    <div class="submenu submenu-brands">
+                                        <div class="dropdown-item selected-mark">通用 ✓</div>
+                                        <div class="dropdown-item">3D-Fuel</div>
+                                        <div class="dropdown-item">Best Filament</div>
+                                        <div class="dropdown-item">Chromatik</div>
+                                        <div class="dropdown-item">DSM</div>
+                                        <div class="dropdown-item">eMotionTech</div>
+                                        <div class="dropdown-item">Eryone</div>
+                                        <div class="dropdown-item">eSUN</div>
+                                        <div class="dropdown-item">Extrudr</div>
+                                        <div class="dropdown-item">FABtotum</div>
+                                        <div class="dropdown-item">FDplast</div>
+                                        <div class="dropdown-item">Fiberlogy HD</div>
+                                        <div class="dropdown-item">Filo3D</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item">设为主挤出机</div>
+                                <div class="dropdown-item">关闭挤出机</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item has-submenu">打印机 (P) <span class="arrow">›</span></div>
+                        <div class="dropdown-item">参数显示设置...</div>
+                    </div>
+                </div>
+                <div class="menu-item">插件 (X)</div>
+                <div class="menu-item" data-modal="preferencesModal">偏好设置 (R)</div>
+                <div class="menu-item" data-menu="help">
+                    帮助 (H)
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" data-modal="aboutModal"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M6 6.5a2 2 0 013.5 1.5c0 1-1.5 1.5-1.5 1.5"/><circle cx="8" cy="12" r="0.5" fill="currentColor"/></svg>关于 GT Slicer</span></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 2h7l3 3v9H3z"/><path d="M5 7h6M5 9.5h6M5 12h3"/></svg>用户手册</span> <span class="shortcut">F1</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2v4M5 4l3 2 3-2"/><circle cx="8" cy="10" r="4"/><path d="M8 8.5v2.5M8 12.5v.5"/></svg>检查更新...</span></div>
+                        <div class="dropdown-item"><span class="menu-label"><svg class="menu-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12v8H9l-3 2v-2H2z"/></svg>反馈问题...</span></div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="top-bar-center">
+            <button class="topnav-home" title="首页">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10l7-7 7 7"/><path d="M5 8v8h4v-4h2v4h4V8"/></svg>
+            </button>
+            <div class="tab-switcher">
+                <button class="tab-btn" data-tab-icon="prepare">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12"/><path d="M5 6h6M5 8h6M5 10h4"/></svg>
+                    准备
+                </button>
+                <button class="tab-btn active" data-tab-icon="preview">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M6 5.5l5 2.5-5 2.5z"/></svg>
+                    预览
+                </button>
+                <button class="tab-btn" data-tab-icon="devices">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="7" width="10" height="6"/><rect x="4" y="3" width="8" height="4"/><rect x="6" y="10" width="4" height="2"/></svg>
+                    设备
+                </button>
+                <button class="tab-btn" data-tab-icon="project">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 4h3l1-2h4l1 2h3v9H2z"/></svg>
+                    项目
+                </button>
+                <button class="tab-btn" data-tab-icon="calibrate">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2"/></svg>
+                    校准
+                </button>
+            </div>
+        </div>
+
+        <div class="top-bar-right">
+            <div class="top-actions">
+                <button class="action-btn" title="切片" id="sliceBtn">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10h12M4 5h12M4 15h12"/><circle cx="14" cy="10" r="2"/></svg>
+                    切片单盘
+                </button>
+                <button class="action-btn primary" title="打印" id="printBtn">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3v10M6 9l4 4 4-4M4 15h12"/></svg>
+                    打印单盘
+                </button>
+            </div>
+            <button class="theme-toggle" id="themeToggle" title="切换主题">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="10" cy="10" r="4"/>
+                    <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Left Panel — Bambu-style Printer / Nozzle / Material / Process -->
+
+        <!-- 3D Viewport -->
+        <div class="viewport" id="viewport">
+            <canvas id="three-canvas"></canvas>
+
+            <!-- Floating Toolbar (moved from left sidebar) -->
+            <div class="floating-toolbar" id="floatingToolbar">
+                <button class="ftool-btn active" title="选择" data-tool="select"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2.5l11 7-5.5 1.5-2.5 5.5z"/></svg></button>
+                <button class="ftool-btn" title="移动" data-tool="move"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2v16M2 10h16M10 2l2.5 2.5M10 2l-2.5 2.5M10 18l2.5-2.5M10 18l-2.5-2.5M2 10l2.5-2.5M2 10l2.5 2.5M18 10l-2.5-2.5M18 10l-2.5 2.5"/></svg></button>
+                <button class="ftool-btn" title="缩放" data-tool="scale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="6" height="6"/><rect x="12" y="12" width="6" height="6"/><path d="M8 5.5h3v3M12 14.5h-3v-3"/></svg></button>
+                <button class="ftool-btn" title="旋转" data-tool="rotate"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 10a6.5 6.5 0 0111.3-4.3"/><path d="M16.5 10a6.5 6.5 0 01-11.3 4.3"/><path d="M14.8 5.7l.8-3.2h2.4"/></svg></button>
+                <div class="ftool-divider"></div>
+                <button class="ftool-btn" title="添加" data-tool="add"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14"/><path d="M10 7v6M7 10h6"/></svg></button>
+                <button class="ftool-btn" title="支撑" data-tool="support"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 16V9l5-5 5 5v7"/><path d="M5 16h10"/><path d="M8 12v4M12 12v4"/></svg></button>
+                <button class="ftool-btn" title="切割" data-tool="cut"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10h16"/><path d="M6 3l-2 14M14 3l2 14"/></svg></button>
+                <button class="ftool-btn" title="测量" data-tool="measure"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17L17 3"/><path d="M3 17h4v-4"/><path d="M17 3h-4v4"/></svg></button>
+            </div>
+
+            <!-- Viewport overlay info -->
+            <div class="viewport-info">
+                <div class="view-cube" id="viewCube">
+                    <div class="cube-face front">前</div>
+                    <div class="cube-face back">后</div>
+                    <div class="cube-face right">右</div>
+                    <div class="cube-face left">左</div>
+                    <div class="cube-face top">上</div>
+                    <div class="cube-face bottom">下</div>
+                </div>
+            </div>
+
+            <!-- Model info overlay -->
+            <div class="model-info-overlay" id="modelInfo" style="display:none;">
+                <div class="model-info-row">
+                    <span class="model-info-label">尺寸</span>
+                    <span class="model-info-value" id="modelSize">120 × 80 × 65 mm</span>
+                </div>
+                <div class="model-info-row">
+                    <span class="model-info-label">体积</span>
+                    <span class="model-info-value" id="modelVolume">245.8 cm³</span>
+                </div>
+                <div class="model-info-row">
+                    <span class="model-info-label">三角面</span>
+                    <span class="model-info-value" id="modelFaces">12,840</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Panel -->
+        <div class="lp-process-panel">
+            <!-- Custom Material Panel -->
+            <div class="gt-custom-material">
+                <div class="gt-cm-title">Custom Material</div>
+                <div class="gt-cm-tabs">
+                    <div class="gt-cm-tab active" data-cmext="1"><span class="gt-cm-num">①</span></div>
+                    <div class="gt-cm-tab" data-cmext="2"><span class="gt-cm-num">②</span></div>
+                    <div class="gt-cm-tab" data-cmext="3"><span class="gt-cm-num">③</span></div>
+                </div>
+                <div class="gt-cm-body" data-cmext="1">
+                    <div class="gt-cm-row"><span>已启用</span><label class="gt-cm-check"><input type="checkbox" checked data-cm-enable="1"><span class="gt-cm-checkmark"></span></label></div>
+                    <div class="gt-cm-row"><span>材料</span><select class="gt-cm-sel" data-cm-field="1"><option>empty</option><option selected>BF ABS SkyBlue</option><option>Generic PLA</option><option>Generic PETG</option><option>PA-CF</option><option>TPU 95A</option></select></div>
+                    <div class="gt-cm-row"><span>喷嘴</span><select class="gt-cm-sel" data-cm-field="1"><option>empty</option><option>0.2 mm</option><option selected>0.4 mm</option><option>0.6 mm</option><option>0.8 mm</option></select></div>
+                </div>
+                <div class="gt-cm-body" data-cmext="2" style="display:none">
+                    <div class="gt-cm-row"><span>已启用</span><label class="gt-cm-check"><input type="checkbox" data-cm-enable="2"><span class="gt-cm-checkmark"></span></label></div>
+                    <div class="gt-cm-row gt-cm-disabled"><span>材料</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>Generic PLA</option><option>Generic PETG</option><option>PA-CF</option></select></div>
+                    <div class="gt-cm-row gt-cm-disabled"><span>喷嘴</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>0.2 mm</option><option>0.4 mm</option><option>0.6 mm</option></select></div>
+                </div>
+                <div class="gt-cm-body" data-cmext="3" style="display:none">
+                    <div class="gt-cm-row"><span>已启用</span><label class="gt-cm-check"><input type="checkbox" data-cm-enable="3"><span class="gt-cm-checkmark"></span></label></div>
+                    <div class="gt-cm-row gt-cm-disabled"><span>材料</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>Generic PLA</option><option>Generic PETG</option><option>PA-CF</option></select></div>
+                    <div class="gt-cm-row gt-cm-disabled"><span>喷嘴</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>0.2 mm</option><option>0.4 mm</option><option>0.6 mm</option></select></div>
+                </div>
+            </div>
+
+            <!-- Printer Header -->
+            <div class="gt-header">
+                <div class="gt-header-title">
+                    <span>打印设置</span>
+                    <button class="gt-header-close">×</button>
+                </div>
+                <div class="gt-header-profile">
+                    <span class="gt-profile-label">配置文件</span>
+                    <select class="gt-profile-select">
+                        <option selected>Fine</option>
+                        <option>Draft</option>
+                        <option>Normal</option>
+                        <option>Ultra Fine</option>
+                    </select>
+                    <button class="gt-profile-star" title="收藏">☆</button>
+                </div>
+                <!-- Extruder Tabs ①②③ -->
+                <div class="gt-ext-tabs">
+                    <div class="gt-ext-tab active" data-ext="1">
+                        <span class="gt-ext-num">①</span>
+                    </div>
+                    <div class="gt-ext-tab" data-ext="2">
+                        <span class="gt-ext-num">②</span>
+                    </div>
+                    <div class="gt-ext-tab" data-ext="3">
+                        <span class="gt-ext-num">③</span>
+                    </div>
+                </div>
+                <!-- Search -->
+                <div class="gt-search-row">
+                    <svg class="gt-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+                    <input class="gt-search-input" type="text" placeholder="搜索设置">
+                    <button class="gt-search-menu" title="菜单">☰</button>
+                </div>
+            </div>
+            <!-- Tab Navigation -->
+            <!-- 5-tab nav hidden, all params shown flat like original GT Slicer -->
+            <div class="lp-tab-nav" style="display:none">
+                <button class="lp-tab-btn active" data-tab="basic">基础结构</button>
+                <button class="lp-tab-btn" data-tab="motion">运动控制</button>
+                <button class="lp-tab-btn" data-tab="auxiliary">辅助功能</button>
+                <button class="lp-tab-btn" data-tab="advanced">高级/特殊</button>
+                <button class="lp-tab-btn" data-tab="fiber">Continuous Fiber</button>
+            </div>
+
+            <!-- Tab Content Container -->
+            <div class="lp-tab-content">
+            <!-- 1. 材料 Material -->
+            <div class="lp-param-group" data-tab="basic" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="10" height="8" rx="1"/><path d="M4 11v2h6v-2"/></svg>
+                    <span class="lp-group-title">材料</span>
+                    <span class="lp-group-preview">210°C / 100%</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">打印温度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="210" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">打印温度起始层</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="215" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">起始打印温度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="190" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">最终打印温度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="190" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">待机温度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="175" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">打印平台温度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="60" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">打印平台温度起始层</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="65" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°C</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">填充流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">装填塔流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">顶部表层流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">顶部/底部流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">裙边/边缘流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">支撑接触面流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">支撑底板流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">支撑顶板流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">支撑流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">壁流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">外壁流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">内壁流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">起始层流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">Initial Layer Bottom Flow</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">Outer Wall Flow</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">Inner Wall Flow</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">挤出冷却速度调节器</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">缩放因子收缩补偿</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">水平缩放因子收缩补偿</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">垂直缩放因子收缩补偿</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 质量 Quality -->
+            <div class="lp-param-group" data-tab="basic" data-group-open="true">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 2"/></svg>
+                    <span class="lp-group-title">质量</span>
+                    <span class="lp-group-preview">0.20mm / 0.4mm</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">层高</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.2" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">起始层高</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.24" step="0.02" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">起始层走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">走线宽度（填充）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.45" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">装填塔走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">走线宽度（顶层/底层）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">走线宽度（Skirt/Brim）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">走线宽度（支撑接触面）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">支撑底板走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">支撑顶板走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">走线宽度（支撑结构）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">走线宽度（壁）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">走线宽度（外壁）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.4" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent lp-indent">
+                        <span class="lp-param-name">走线宽度（内壁）</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.45" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">接缝位置</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>对齐</option><option>最近</option><option>随机</option><option>后方</option></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 墙 Walls -->
+            <div class="lp-param-group" data-tab="basic" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="2" width="10" height="10"/><path d="M2 7h10M7 2v10"/></svg>
+                    <span class="lp-group-title">墙</span>
+                    <span class="lp-group-preview">2层 / 100%</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">墙层数</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="2" class="lp-spin-input"><button class="lp-spin-btn">+</button></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">将墙体嵌入填充中</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">壁流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">外壁流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">内壁流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">起始层流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">壁挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">外壁挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">内壁挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">Generate Ribs</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">交替备用壁</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">打印薄壁</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">孔洞水平扩展</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">水平扩展</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">起始层水平扩展</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">壁顺序</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>外壁优先</option><option>内壁优先</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">壁过渡长度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="1" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">壁过渡阈值角度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="20" step="1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">Z 缝位置</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>最短</option><option>后方</option><option>对齐</option><option>随机</option></select></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">Z 缝 X</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">Z 缝 Y</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">最小薄壁走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.2" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">最小壁走线宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.3" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 顶/底层 Top/Bottom -->
+            <div class="lp-param-group" data-tab="basic" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="4" width="10" height="6"/><path d="M2 7h10"/></svg>
+                    <span class="lp-group-title">顶/底层</span>
+                    <span class="lp-group-preview">5层 / 单调线</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">顶面图案</span>
+                        <div class="lp-param-val"><div class="lp-pattern-select"><span class="lp-pattern-icon">▧</span><select class="lp-param-select"><option selected>单调线</option><option>同心</option><option>锯齿形</option></select></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">顶部壳体层数</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">顶部壳体厚度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="1" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">底面图案</span>
+                        <div class="lp-param-val"><div class="lp-pattern-select"><span class="lp-pattern-icon">▨</span><select class="lp-param-select"><option selected>单调</option><option>同心</option><option>锯齿形</option></select></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">底部壳体层数</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="3" class="lp-spin-input"><button class="lp-spin-btn">+</button></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">皮肤扩展距离</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">顶部皮肤扩展距离</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">底部皮肤扩展距离</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">皮肤重叠百分比</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="10" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">启用熨平</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">熨平流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">熨平嵌入</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.15" step="0.05" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">熨平速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="20" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">皮肤挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">顶部皮肤挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">底部皮肤挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">顶层/底层走线方向</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="45" step="5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">单调顶部/底部顺序</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 填充 Infill -->
+            <div class="lp-param-group" data-tab="basic" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 2l10 10M2 12l10-10M2 7h10M7 2v10"/></svg>
+                    <span class="lp-group-title">填充</span>
+                    <span class="lp-group-preview">15% / 网格</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">稀疏填充密度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="15" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充多线</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">稀疏填充图案</span>
+                        <div class="lp-param-val"><div class="lp-pattern-select"><span class="lp-pattern-icon">▦</span><select class="lp-param-select"><option selected>网格</option><option>三角形</option><option>蜂巢</option><option>线性</option><option>同心</option><option>锯齿形</option><option>网格</option><option>立方体</option><option>四面体填充</option></select></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充走线方向</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="45" step="5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">渐进填充步阶</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">层</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">X轴偏移量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">Y轴偏移量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充挤出机</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>挤出机 1</option><option>挤出机 2</option><option>挤出机 3</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充支撑角度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="50" step="1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充随机偏移量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 移动 Movement -->
+            <div class="lp-param-group" data-tab="motion" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 7h4l2-4 2 8 2-4h2"/></svg>
+                    <span class="lp-group-title">移动</span>
+                    <span class="lp-group-preview">0.8mm / 30mm/s</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">启用回抽</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">回抽距离</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.8" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">回抽速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="30" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">Z轴抬升高度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" step="0.1" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">回抽时Z轴抬升</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. 速度 Speed -->
+            <div class="lp-param-group" data-tab="motion" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 2"/></svg>
+                    <span class="lp-group-title">速度</span>
+                    <span class="lp-group-preview">60mm/s / 150mm/s</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">打印速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="60" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">移动速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="150" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">外壁速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="30" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">内壁速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="45" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">填充速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="80" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">首层速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="20" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. 支撑 Support -->
+            <div class="lp-param-group" data-tab="auxiliary" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 12V6l3-3 3 3v6"/><path d="M4 12h6"/><path d="M6 9v3M8 9v3"/></svg>
+                    <span class="lp-group-title">支撑</span>
+                        <span class="lp-group-preview">开 / 45°</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">启用支撑</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">支撑类型</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>普通（自动）</option><option>树状（自动）</option><option>手动绘制</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">支撑悬垂角度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="45" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">°</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">支撑图案</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>网格</option><option>线性</option><option>锯齿形</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">支撑密度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="15" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. 打印平台附着 Platform Adhesion -->
+            <div class="lp-param-group" data-tab="auxiliary" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="8" width="10" height="4"/><path d="M3 8V5h8v3"/></svg>
+                    <span class="lp-group-title">打印平台附着</span>
+                    <span class="lp-group-preview">底板</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">附着类型</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option>裙边</option><option selected>底板</option><option>边缘</option><option>无</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">裙边圈数</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="3" class="lp-spin-input"><button class="lp-spin-btn">+</button></div></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">底板宽度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="8" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. 冷却 Cooling -->
+            <div class="lp-param-group" data-tab="auxiliary" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M7 1v3M7 10v3M1 7h3M10 7h3M2.5 2.5l2 2M9.5 9.5l2 2M2.5 11.5l2-2M9.5 4.5l2-2"/></svg>
+                    <span class="lp-group-title">冷却</span>
+                    <span class="lp-group-preview">100% / 0s</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">风扇速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">首层风扇速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">最小层冷却时间</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">风扇启动阈值</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="10" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">s</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. 双重挤出 Dual Extrusion -->
+            <div class="lp-param-group" data-tab="advanced" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="4.5" cy="5" r="2.5"/><circle cx="9.5" cy="5" r="2.5"/><path d="M4.5 7.5v3M9.5 7.5v3M3 10.5h8"/></svg>
+                    <span class="lp-group-title">双重挤出</span>
+                    <span class="lp-group-preview">装填塔</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">挤出机切换回抽距离</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="16" step="0.5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">挤出机切换回抽速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="20" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">启用装填塔</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">装填塔体积</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="15" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm³</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 12. 网格修复 Mesh Fixes -->
+            <div class="lp-param-group" data-tab="advanced" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3h10v8H2z"/><path d="M2 6h10M5 3v8M9 3v8"/></svg>
+                    <span class="lp-group-title">网格修复</span>
+                    <span class="lp-group-preview">自动修复</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">自动修复模型</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">合并重叠顶点</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">顶点合并阈值</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="0.01" step="0.001" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">移除小孔</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 13. 特殊模式 Special Modes -->
+            <div class="lp-param-group" data-tab="advanced" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 7h10M7 2v10"/><circle cx="7" cy="7" r="2"/></svg>
+                    <span class="lp-group-title">特殊模式</span>
+                    <span class="lp-group-preview">正常</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">表面模式</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>正常</option><option>表面</option><option>仅表面</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">螺旋打印外轮廓</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">模具</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">相对挤出</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 14. 实验性 Experimental -->
+            <div class="lp-param-group" data-tab="advanced" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M7 1l6 12H1z"/><circle cx="7" cy="9" r="0.5" fill="currentColor"/></svg>
+                    <span class="lp-group-title">实验性</span>
+                    <span class="lp-group-preview">-</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">使用自适应图层</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">连桥有多层</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">连桥风扇速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第二层表面风扇速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第三层表面风扇速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">启用连桥设置</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox" checked><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">连桥表面密度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第二层表面密度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="75" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第三层表面密度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="80" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">连桥表面流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="60" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第二层表面流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="100" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第三层表面流量</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="110" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">连桥表面速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="10" step="0.5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第二层表面速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="10" step="0.5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row lp-indent">
+                        <span class="lp-param-name">连桥第三层表面速度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="10" step="0.5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm/s</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">连桥表面支撑阈值</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="50" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 15. Continuous Fiber -->
+            <div class="lp-param-group" data-tab="fiber" data-group-open="false">
+                <div class="lp-group-header">
+                    <svg class="lp-group-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 7c0-3 2.5-5 5-5s5 2 5 5-2.5 5-5 5"/><path d="M4 7c0-2 1.5-3 3-3s3 1 3 3-1.5 3-3 3"/></svg>
+                    <span class="lp-group-title">Continuous Fiber</span>
+                    <span class="lp-group-preview">关</span>
+                    <svg class="lp-group-caret" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                </div>
+                <div class="lp-group-body">
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">启用碳纤维</span>
+                        <div class="lp-param-val"><label class="lp-check"><input type="checkbox"><span class="lp-checkmark"></span></label></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">纤维类型</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>玻纤</option><option>碳纤</option><option>凯夫拉</option><option>高强玻纤</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">纤维层密度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="50" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">%</span></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">纤维填充图案</span>
+                        <div class="lp-param-val"><select class="lp-param-select"><option selected>单向</option><option>交叉</option><option>各向同性</option></select></div>
+                    </div>
+                    <div class="lp-param-row">
+                        <span class="lp-param-name">纤维剪切长度</span>
+                        <div class="lp-param-val"><div class="lp-spinner"><button class="lp-spin-btn">−</button><input type="number" value="5" step="0.5" class="lp-spin-input"><button class="lp-spin-btn">+</button></div><span class="lp-unit">mm</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </aside>
+
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="status-bar" id="statusBar">
+        <div class="status-left">
+            <div class="status-item">
+                <svg class="status-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <circle cx="7" cy="7" r="5.5"/>
+                    <path d="M7 4v4l2.5 1.5"/>
+                </svg>
+                <span class="status-label">预计时间</span>
+                <span class="status-value highlight" id="printTime">3h 42min</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-item">
+                <svg class="status-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <path d="M2 12V5l5-3 5 3v7"/>
+                    <path d="M2 12h10"/>
+                </svg>
+                <span class="status-label">耗材用量</span>
+                <span class="status-value highlight" id="materialUsage">28.5g / 9.2m</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-item">
+                <svg class="status-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <path d="M2 7h10M2 3h10M2 11h10"/>
+                </svg>
+                <span class="status-label">层数</span>
+                <span class="status-value" id="layerCount">325 层</span>
+            </div>
+        </div>
+        <div class="status-right">
+            <div class="status-item">
+                <span class="status-ready-dot"></span>
+                <span class="status-value">就绪</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Slice Progress Modal -->
+    <div class="modal-overlay" id="sliceModal" style="display:none;">
+        <div class="modal-card">
+            <h3 class="modal-title">正在切片...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">正在分析模型...</p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         偏好设定 Modal (Preferences)
+         ============================================ -->
+    <div class="modal-overlay" id="preferencesModal" style="display:none;">
+        <div class="modal-card modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left">偏好设置</h3>
+                <button class="modal-close" data-close="preferencesModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="modal-body-split">
+                <!-- Left Nav -->
+                <nav class="modal-nav">
+                    <div class="modal-nav-item active" data-pref-tab="general">基本</div>
+                    <div class="modal-nav-item" data-pref-tab="settings">设置</div>
+                    <div class="modal-nav-item" data-pref-tab="printers">打印机</div>
+                    <div class="modal-nav-item" data-pref-tab="materials">材料</div>
+                    <div class="modal-nav-item" data-pref-tab="profiles">配置文件</div>
+                </nav>
+                <!-- Right Content -->
+                <div class="modal-content-area">
+
+                    <!-- ==================== General Tab ==================== -->
+                    <div class="pref-panel active" id="pref-general">
+                        <div class="pref-page-header">
+                            <h4 class="pref-page-title">基本</h4>
+                            <button class="pref-btn-default">默认</button>
+                        </div>
+
+                        <!-- 接口 -->
+                        <h5 class="pref-group-title">接口</h5>
+                        <div class="pref-row">
+                            <label class="pref-label">Language*:</label>
+                            <select class="pref-select">
+                                <option>简体中文</option>
+                                <option>繁體中文</option>
+                                <option>English</option>
+                                <option>日本語</option>
+                                <option>Deutsch</option>
+                            </select>
+                        </div>
+                        <div class="pref-row">
+                            <label class="pref-label">币种：</label>
+                            <input type="text" value="¥" class="pref-input pref-input-short">
+                        </div>
+                        <div class="pref-row">
+                            <label class="pref-label">主题*：</label>
+                            <select class="pref-select" id="prefThemeSelect">
+                                <option value="dark">深空科技 (Dark)</option>
+                                <option value="light">工业实验室 (Light)</option>
+                            </select>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>自动切片</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>Add icon to system tray *</label>
+                        </div>
+                        <p class="pref-note">*需重新启动该应用程序，这些更改才能生效。</p>
+
+                        <!-- 视区行为 -->
+                        <h5 class="pref-group-title">视区行为</h5>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>显示悬垂（Overhang）</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>显示模型错误</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>当项目被选中时，自动对中视角</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>反转视角变焦方向。</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox disabled"><input type="checkbox" disabled><span class="checkmark"></span><span class="text-disabled">跟随鼠标方向缩放</span></label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>确保每个模型都保持分离</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>自动下降模型到打印平台</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>G-code 读取器中的警告信息</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>强制层视图兼容模式（需要重新启动）</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>恢复初始窗口位置</label>
+                        </div>
+                        <div class="pref-row pref-row-compact">
+                            <label class="pref-label">摄像头渲染：</label>
+                            <select class="pref-select pref-select-sm">
+                                <option selected>正交</option>
+                                <option>透视</option>
+                            </select>
+                        </div>
+
+                        <!-- 打开并保存文件 -->
+                        <h5 class="pref-group-title">打开并保存文件</h5>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>使用单个 Cura 实例</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox disabled"><input type="checkbox" checked disabled><span class="checkmark"></span><span class="text-disabled">在清理构建板后再将模型加载到单个实例中</span></label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>缩小过大模型</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>放大过小模型</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>选择模型时加载</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>将机器前缀添加到作业名称中</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>保存项目时显示摘要对话框</label>
+                        </div>
+                        <div class="pref-row pref-row-compact">
+                            <label class="pref-label">打开项目文件时的默认行为：</label>
+                            <select class="pref-select pref-select-sm">
+                                <option selected>总是询问</option>
+                                <option>打开为项目</option>
+                                <option>导入模型</option>
+                            </select>
+                        </div>
+
+                        <!-- 配置文件 -->
+                        <h5 class="pref-group-title">配置文件</h5>
+                        <div class="pref-row pref-row-compact">
+                            <label class="pref-label pref-label-long">切换到不同配置文件时对设置值更改的默认操作：</label>
+                            <select class="pref-select">
+                                <option selected>总是询问</option>
+                                <option>保留更改</option>
+                                <option>丢弃更改</option>
+                            </select>
+                        </div>
+
+                        <!-- 隐私 -->
+                        <h5 class="pref-group-title">隐私</h5>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>（匿名）发送打印信息 <span class="pref-info-icon" title="帮助改进软件">ⓘ</span></label>
+                        </div>
+
+                        <!-- 更新 -->
+                        <h5 class="pref-group-title">更新</h5>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>启动时检查更新</label>
+                        </div>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="updateChannel"><span class="radiomark"></span>仅限稳定版</label>
+                            <label class="pref-radio"><input type="radio" name="updateChannel" checked><span class="radiomark"></span>稳定版和测试版</label>
+                        </div>
+                        <div class="pref-check-row">
+                            <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>获取插件更新通知</label>
+                        </div>
+                    </div>
+
+                    <!-- ==================== Settings Tab ==================== -->
+                    <div class="pref-panel" id="pref-settings">
+                        <div class="pref-page-header">
+                            <h4 class="pref-page-title">设置可见性</h4>
+                            <button class="pref-btn-default">默认</button>
+                        </div>
+                        <div class="pref-settings-toolbar">
+                            <label class="pref-checkbox"><input type="checkbox" id="settingsCheckAll"><span class="checkmark"></span>全部勾选</label>
+                            <input type="text" placeholder="筛选..." class="pref-input pref-input-filter">
+                            <select class="pref-select pref-select-sm">
+                                <option>All</option>
+                                <option>Basic</option>
+                                <option selected>Advanced</option>
+                                <option>Expert</option>
+                            </select>
+                        </div>
+
+                        <!-- 材料 分组 -->
+                        <div class="settings-category" data-open="true">
+                            <div class="settings-category-header">
+                                <svg class="settings-caret" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3z" fill="currentColor"/></svg>
+                                <span class="settings-category-icon">⊙</span>
+                                <strong>材料</strong>
+                            </div>
+                            <div class="settings-category-body">
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>打印体积温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>默认打印平台温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>默认打印温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>附着倾向</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>防渗出回抽位置</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>防渗出回抽速度</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>打印平台温度</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>打印平台温度起始层</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>断裂缓冲期回抽位置</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>断裂缓冲期回抽速度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>断裂缓冲期温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>断裂回抽位置</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>断裂回抽速度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>折断温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>晶体材料</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>耗材末端清除长度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>耗材末端清除速度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>挤出冷却速度调节器</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>最终打印温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>流量</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>填充流量</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>装填塔流量</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部表层流量</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部/底部流量</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>裙边/边缘流量</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>支撑接触面流量</label>
+                                    <div class="settings-indent">
+                                        <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>支撑底板流量</label>
+                                        <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>支撑顶板流量</label>
+                                    </div>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>支撑流量</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>壁流量</label>
+                                    <div class="settings-indent">
+                                        <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>外壁流量</label>
+                                        <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>内壁流量</label>
+                                    </div>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>起始层流量</label>
+                                </div>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>冲洗清除长度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>冲洗清除速度</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>起始打印温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>最长停放持续时间</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>空载移动系数</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>打印温度</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>打印温度起始层</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>缩放因子收缩补偿</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>水平缩放因子收缩补偿</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>垂直缩放因子收缩补偿</label>
+                                </div>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>待机温度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>表面能</label>
+                            </div>
+                        </div>
+
+                        <!-- 质量 分组 -->
+                        <div class="settings-category" data-open="true">
+                            <div class="settings-category-header">
+                                <svg class="settings-caret" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3z" fill="currentColor"/></svg>
+                                <span class="settings-category-icon">≡</span>
+                                <strong>质量</strong>
+                            </div>
+                            <div class="settings-category-body">
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>起始层走线宽度</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>层高</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>起始层高</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>走线宽度</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>走线宽度（填充）</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>装填塔走线宽度</label>
+                                    <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>走线宽度（顶层/底层）</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>走线宽度（Skirt / Brim）</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>走线宽度（支撑接触面）</label>
+                                    <div class="settings-indent">
+                                        <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>支撑底板走线宽度</label>
+                                        <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>支撑顶板走线宽度</label>
+                                    </div>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>走线宽度（支撑结构）</label>
+                                    <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>走线宽度（壁）</label>
+                                    <div class="settings-indent">
+                                        <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>走线宽度（外壁）</label>
+                                        <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>走线宽度（内壁）</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 墙 分组 -->
+                        <div class="settings-category" data-open="false">
+                            <div class="settings-category-header">
+                                <svg class="settings-caret" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3z" fill="currentColor"/></svg>
+                                <span class="settings-category-icon">⊞</span>
+                                <strong>墙</strong>
+                            </div>
+                            <div class="settings-category-body" style="display:none;">
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>交替备用壁</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>打印薄壁</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>孔洞水平扩展</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>壁顺序</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>最小薄壁走线宽度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>最小特征尺寸</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>最小壁走线宽度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>壁过渡阈值角度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>壁过渡筛选边距</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>壁过渡筛选距离</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>壁过渡长度</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>水平扩展</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>起始层水平扩展</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>缝隙角偏好设置</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>Z 缝位置</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>Z 缝 X</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>Z 缝 Y</label>
+                                </div>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>Z 缝相对</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>Z 缝对齐</label>
+                            </div>
+                        </div>
+
+                        <!-- 顶/底层 分组 -->
+                        <div class="settings-category" data-open="false">
+                            <div class="settings-category-header">
+                                <svg class="settings-caret" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3z" fill="currentColor"/></svg>
+                                <span class="settings-category-icon">⊞</span>
+                                <strong>顶 / 底层</strong>
+                            </div>
+                            <div class="settings-category-body" style="display:none;">
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>熨平加速度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>连接顶部/底部多边形</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>皮肤扩展距离</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>底部皮肤扩展距离</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部皮肤扩展距离</label>
+                                </div>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>启用熨平</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>熨平流量</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>熨平嵌入</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>熨平走线间距</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>单调熨平顺序</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>仅熨平最高层</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>熨平图案</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>熨平抖动速度</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>最大扩展皮肤角度</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>最小扩展皮肤宽度</label>
+                                </div>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部皮肤挤出机</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部表面皮肤层</label>
+                                <div class="settings-indent">
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部表面皮肤走线方向</label>
+                                    <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部表面皮肤线宽</label>
+                                </div>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>单调顶部表面顺序</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶部表面皮肤图案</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>顶层/底层走线方向</label>
+                                <label class="pref-checkbox"><input type="checkbox" checked><span class="checkmark"></span>单调顶部/底部顺序</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>Z 间隙内无表层</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>额外皮肤壁计数</label>
+                                <label class="pref-checkbox"><input type="checkbox"><span class="checkmark"></span>皮肤重叠百分比</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== Printers Tab ==================== -->
+                    <div class="pref-panel" id="pref-printers">
+                        <div class="pref-page-header">
+                            <h4 class="pref-page-title">打印机</h4>
+                            <div class="pref-page-actions">
+                                <button class="pref-btn-action" data-modal="addPrinterModal">新增</button>
+                            </div>
+                        </div>
+
+                        <div class="printer-main">
+                            <!-- 左侧打印机列表 -->
+                            <div class="printer-list">
+                                <div class="printer-list-title">预设打印机</div>
+                                <div class="printer-list-item">GT Carbon HT440</div>
+                                <div class="printer-list-item">GT Carbon S800</div>
+                                <div class="printer-list-item active"><em>GT HCF 600</em></div>
+                            </div>
+                            <!-- 右侧详情 -->
+                            <div class="printer-detail">
+                                <div class="printer-detail-header">
+                                    <h5 class="printer-detail-name">GT HCF 600</h5>
+                                    <button class="mat-detail-menu" title="更多操作">≡</button>
+                                </div>
+                                <div class="printer-detail-actions">
+                                    <button class="pref-btn-action">更新固件</button>
+                                    <button class="pref-btn-action">打印机设置</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== Materials Tab ==================== -->
+                    <div class="pref-panel" id="pref-materials">
+                        <div class="pref-page-header">
+                            <h4 class="pref-page-title">材料</h4>
+                            <div class="pref-page-actions">
+                                <button class="pref-btn-action">新建</button>
+                                <button class="pref-btn-action">导入</button>
+                            </div>
+                        </div>
+                        <p class="mat-compat-note">与处于活动状态的打印机兼容的材料：<strong>GT Carbon HT440</strong></p>
+
+                        <div class="mat-main">
+                            <!-- ===== 左侧材料树 ===== -->
+                            <div class="mat-tree">
+                                <!-- Favorites -->
+                                <div class="mat-brand" data-collapsed="true">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">Favorites</span><span class="mat-toggle">‹</span></div>
+                                </div>
+                                <!-- Generic -->
+                                <div class="mat-brand" data-collapsed="true">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">Generic</span><span class="mat-toggle">‹</span></div>
+                                </div>
+                                <!-- 3D-Fuel (展开) -->
+                                <div class="mat-brand" data-collapsed="false">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">3D-Fuel</span><span class="mat-toggle">⌄</span></div>
+                                    <div class="mat-brand-body">
+                                        <div class="mat-type" data-collapsed="false">
+                                            <div class="mat-type-header"><span class="mat-type-name">PLA</span><span class="mat-toggle">⌄</span></div>
+                                            <div class="mat-type-body">
+                                                <div class="mat-item active" data-mat-id="3dfuel-propla">
+                                                    <span class="mat-dot" style="background:#222"></span>
+                                                    <span class="mat-item-name">3D-Fuel Pro PLA (…</span>
+                                                </div>
+                                                <div class="mat-item" data-mat-id="3dfuel-snap">
+                                                    <span class="mat-dot" style="background:#D4A017"></span>
+                                                    <span class="mat-item-name">3D-Fuel SnapS…</span>
+                                                    <span class="mat-fav">★</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Best Filament -->
+                                <div class="mat-brand" data-collapsed="false">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">Best Filament</span><span class="mat-toggle">⌄</span></div>
+                                    <div class="mat-brand-body">
+                                        <div class="mat-type" data-collapsed="false">
+                                            <div class="mat-type-header"><span class="mat-type-name">ABS</span><span class="mat-toggle">⌄</span></div>
+                                            <div class="mat-type-body">
+                                                <div class="mat-item" data-mat-id="bf-abs">
+                                                    <span class="mat-dot" style="background:#9ED8F0"></span>
+                                                    <span class="mat-item-name">Best Filament …</span>
+                                                    <span class="mat-fav">★</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mat-type" data-collapsed="false">
+                                            <div class="mat-type-header"><span class="mat-type-name">PETG</span><span class="mat-toggle">⌄</span></div>
+                                            <div class="mat-type-body">
+                                                <div class="mat-item" data-mat-id="bf-petg">
+                                                    <span class="mat-dot" style="background:#E8A020"></span>
+                                                    <span class="mat-item-name">Best Filament BF …</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mat-type" data-collapsed="true">
+                                            <div class="mat-type-header"><span class="mat-type-name">PLA</span><span class="mat-toggle">‹</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Chromatik -->
+                                <div class="mat-brand" data-collapsed="false">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">Chromatik</span><span class="mat-toggle">⌄</span></div>
+                                    <div class="mat-brand-body">
+                                        <div class="mat-type" data-collapsed="false">
+                                            <div class="mat-type-header"><span class="mat-type-name">PLA</span><span class="mat-toggle">⌄</span></div>
+                                            <div class="mat-type-body">
+                                                <div class="mat-item" data-mat-id="chromatik-pla">
+                                                    <span class="mat-dot" style="background:#D4A017"></span>
+                                                    <span class="mat-item-name">Chromatik PLA</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- DSM -->
+                                <div class="mat-brand" data-collapsed="true">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">DSM</span><span class="mat-toggle">‹</span></div>
+                                </div>
+                                <!-- eMotionTech (展开) -->
+                                <div class="mat-brand" data-collapsed="false">
+                                    <div class="mat-brand-header"><span class="mat-brand-name">eMotionTech</span><span class="mat-toggle">⌄</span></div>
+                                    <div class="mat-brand-body">
+                                        <div class="mat-type" data-collapsed="false">
+                                            <div class="mat-type-header"><span class="mat-type-name">ABS</span><span class="mat-toggle">⌄</span></div>
+                                            <div class="mat-type-body">
+                                                <div class="mat-item" data-mat-id="emt-abs">
+                                                    <span class="mat-dot" style="background:#4CAF50"></span>
+                                                    <span class="mat-item-name">eMotionTech ABS</span>
+                                                </div>
+                                                <div class="mat-item" data-mat-id="emt-absx">
+                                                    <span class="mat-dot" style="background:#7CB342"></span>
+                                                    <span class="mat-item-name">eMotionTech ABS-X</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mat-type" data-collapsed="true">
+                                            <div class="mat-type-header"><span class="mat-type-name">Acetate</span><span class="mat-toggle">‹</span></div>
+                                        </div>
+                                        <div class="mat-type" data-collapsed="false">
+                                            <div class="mat-type-header"><span class="mat-type-name">ASA-X</span><span class="mat-toggle">⌄</span></div>
+                                            <div class="mat-type-body">
+                                                <div class="mat-item" data-mat-id="emt-asax">
+                                                    <span class="mat-dot" style="background:#26C6DA"></span>
+                                                    <span class="mat-item-name">eMotionTech ASA-X</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">Nylon</span><span class="mat-toggle">‹</span></div></div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">PC</span><span class="mat-toggle">‹</span></div></div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">PEKK</span><span class="mat-toggle">‹</span></div></div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">PETG</span><span class="mat-toggle">‹</span></div></div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">PLA</span><span class="mat-toggle">‹</span></div></div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">Soluble</span><span class="mat-toggle">‹</span></div></div>
+                                        <div class="mat-type" data-collapsed="true"><div class="mat-type-header"><span class="mat-type-name">TPU</span><span class="mat-toggle">‹</span></div></div>
+                                    </div>
+                                </div>
+                                <!-- Eryone -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">Eryone</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- eSUN -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">eSUN</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- Extrudr -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">Extrudr</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- FABtotum -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">FABtotum</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- FDplast -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">FDplast</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- Fiberlogy HD -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">Fiberlogy HD</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- Filo3D -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">Filo3D</span><span class="mat-toggle">‹</span></div></div>
+                                <!-- GOOFOO -->
+                                <div class="mat-brand" data-collapsed="true"><div class="mat-brand-header"><span class="mat-brand-name">GOOFOO</span><span class="mat-toggle">‹</span></div></div>
+                            </div>
+
+                            <!-- ===== 右侧详情区 ===== -->
+                            <div class="mat-detail">
+                                <div class="mat-detail-title">
+                                    <h5>Pro PLA (NatureWorks 3D870 Ingeo PLA)</h5>
+                                    <button class="mat-detail-menu" title="更多操作">≡</button>
+                                </div>
+
+                                <!-- Tab 切换 -->
+                                <div class="mat-tabs">
+                                    <div class="mat-tab active" data-mat-tab="info">信息</div>
+                                    <div class="mat-tab" data-mat-tab="print">打印设置</div>
+                                </div>
+
+                                <!-- 信息面板 -->
+                                <div class="mat-tab-panel active" id="mat-tab-info">
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">显示名称</label>
+                                        <input type="text" value="Pro PLA (NatureWorks 3D870 Ingeo PLA)" class="mat-info-input" readonly>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">品牌</label>
+                                        <input type="text" value="3D-Fuel" class="mat-info-input" readonly>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">材料类型</label>
+                                        <input type="text" value="PLA" class="mat-info-input" readonly>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">颜色</label>
+                                        <div class="mat-color-field">
+                                            <span class="mat-dot-lg" style="background:#222"></span>
+                                            <input type="text" value="Black" class="mat-info-input" readonly>
+                                        </div>
+                                    </div>
+
+                                    <h6 class="mat-info-section">属性</h6>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">密度</label>
+                                        <div class="mat-info-val"><input type="number" value="1.24" class="mat-info-input mat-info-input-num" step="0.01"><span class="mat-info-unit">g/cm³</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">直径</label>
+                                        <div class="mat-info-val"><input type="number" value="1.75" class="mat-info-input mat-info-input-num" step="0.01"><span class="mat-info-unit">mm</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">耗材成本</label>
+                                        <div class="mat-info-val"><input type="number" value="0" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">¥</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">耗材重量</label>
+                                        <div class="mat-info-val"><input type="number" value="1000" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">g</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">耗材长度</label>
+                                        <span class="mat-info-computed">~ 335 m</span>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">每米成本</label>
+                                        <span class="mat-info-computed">~ 0.00 ¥/m</span>
+                                    </div>
+
+                                    <h6 class="mat-info-section">描述</h6>
+                                    <textarea class="mat-textarea" rows="4">Pro PLA has higher impact strength than ABS and Standard PLA with a heat resistance rivaling that of ABS!</textarea>
+
+                                    <h6 class="mat-info-section">粘附信息</h6>
+                                    <textarea class="mat-textarea" rows="3" placeholder="输入粘附信息..."></textarea>
+                                </div>
+
+                                <!-- 打印设置面板 -->
+                                <div class="mat-tab-panel" id="mat-tab-print">
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">默认打印平台温度</label>
+                                        <div class="mat-info-val"><input type="number" value="60" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">°C</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">默认打印温度</label>
+                                        <div class="mat-info-val"><input type="number" value="240" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">°C</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">待机温度</label>
+                                        <div class="mat-info-val"><input type="number" value="220" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">°C</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">回抽距离</label>
+                                        <div class="mat-info-val"><input type="number" value="1" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">mm</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">回抽速度</label>
+                                        <div class="mat-info-val"><input type="number" value="40" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">mm/s</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">风扇速度</label>
+                                        <div class="mat-info-val"><input type="number" value="100" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">%</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== Profiles Tab ==================== -->
+                    <div class="pref-panel" id="pref-profiles">
+                        <div class="pref-page-header">
+                            <h4 class="pref-page-title">配置文件</h4>
+                            <div class="pref-page-actions">
+                                <button class="pref-btn-action">导入</button>
+                            </div>
+                        </div>
+                        <p class="mat-compat-note">与处于活动状态的打印机兼容的配置文件：<br><strong>GT HCF 600</strong></p>
+
+                        <div class="profile-main">
+                            <!-- 左侧配置列表 -->
+                            <div class="profile-list">
+                                <div class="profile-list-group">
+                                    <div class="profile-list-group-title">GT HCF 600 配置</div>
+                                    <div class="profile-list-item">草稿 - 0.28mm</div>
+                                    <div class="profile-list-item active">标准质量 - 0.20mm</div>
+                                    <div class="profile-list-item">高质量 - 0.12mm</div>
+                                    <div class="profile-list-item">超高质量 - 0.08mm</div>
+                                </div>
+                                <div class="profile-list-group">
+                                    <div class="profile-list-group-title">自定义</div>
+                                    <div class="profile-list-item">快速打印 - 0.24mm</div>
+                                    <div class="profile-list-item">碳纤维专用 - 0.16mm</div>
+                                </div>
+                            </div>
+                            <!-- 右侧详情 -->
+                            <div class="profile-detail">
+                                <div class="profile-detail-header">
+                                    <h5 class="profile-detail-name">标准质量 - 0.20mm</h5>
+                                    <button class="mat-detail-menu" title="更多操作">≡</button>
+                                </div>
+                                <div class="profile-detail-body">
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">层高</label>
+                                        <div class="mat-info-val"><input type="number" value="0.20" class="mat-info-input mat-info-input-num" step="0.01"><span class="mat-info-unit">mm</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">壁数</label>
+                                        <div class="mat-info-val"><input type="number" value="3" class="mat-info-input mat-info-input-num"></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">顶层数</label>
+                                        <div class="mat-info-val"><input type="number" value="4" class="mat-info-input mat-info-input-num"></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">底层数</label>
+                                        <div class="mat-info-val"><input type="number" value="4" class="mat-info-input mat-info-input-num"></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">填充密度</label>
+                                        <div class="mat-info-val"><input type="number" value="20" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">%</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">填充图案</label>
+                                        <span class="mat-info-computed">网格</span>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">打印速度</label>
+                                        <div class="mat-info-val"><input type="number" value="60" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">mm/s</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">移动速度</label>
+                                        <div class="mat-info-val"><input type="number" value="120" class="mat-info-input mat-info-input-num"><span class="mat-info-unit">mm/s</span></div>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">支撑</label>
+                                        <span class="mat-info-computed">仅接触面</span>
+                                    </div>
+                                    <div class="mat-info-row">
+                                        <label class="mat-info-label">附着类型</label>
+                                        <span class="mat-info-computed">边缘</span>
+                                    </div>
+                                    <div class="profile-detail-actions">
+                                        <button class="pref-btn-action">导出</button>
+                                        <button class="pref-btn-action">复制</button>
+                                        <button class="pref-btn-action pref-btn-action-danger">移除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" data-close="preferencesModal">取消</button>
+                <button class="modal-btn modal-btn-primary" data-close="preferencesModal">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         关于 Modal (About)
+         ============================================ -->
+    <div class="modal-overlay" id="aboutModal" style="display:none;">
+        <div class="modal-card modal-medium">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left">关于 GT Slicer</h3>
+                <button class="modal-close" data-close="aboutModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="modal-body about-body">
+                <div class="about-logo">
+                    <svg width="64" height="64" viewBox="0 0 28 28" fill="none">
+                        <rect x="2" y="2" width="10" height="24" fill="#7B2FD4"/>
+                        <rect x="16" y="2" width="10" height="24" fill="#7B2FD4"/>
+                        <rect x="8" y="10" width="12" height="4" fill="#7B2FD4"/>
+                    </svg>
+                </div>
+                <h2 class="about-name">GT Slicer</h2>
+                <p class="about-version">版本 2.4.1 (Build 20250612)</p>
+                <div class="about-divider"></div>
+                <div class="about-info">
+                    <div class="about-info-row"><span class="about-info-label">切片引擎</span><span class="about-info-value">CuraEngine 5.6.0</span></div>
+                    <div class="about-info-row"><span class="about-info-label">渲染引擎</span><span class="about-info-value">Three.js r128</span></div>
+                    <div class="about-info-row"><span class="about-info-label">框架</span><span class="about-info-value">Electron 28.0</span></div>
+                    <div class="about-info-row"><span class="about-info-label">操作系统</span><span class="about-info-value">macOS 15.2 (Apple M3)</span></div>
+                    <div class="about-info-row"><span class="about-info-label">许可证</span><span class="about-info-value">LGPL-3.0</span></div>
+                </div>
+                <div class="about-divider"></div>
+                <p class="about-copyright">© 2024-2025 GT Technologies Co., Ltd. All rights reserved.</p>
+                <div class="about-links">
+                    <a class="about-link" href="#">官方网站</a>
+                    <a class="about-link" href="#">用户手册</a>
+                    <a class="about-link" href="#">反馈问题</a>
+                    <a class="about-link" href="#">开源许可</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         打印机管理 Modal (Printer Management)
+         ============================================ -->
+    <div class="modal-overlay" id="printerModal" style="display:none;">
+        <div class="modal-card modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left">打印机管理</h3>
+                <button class="modal-close" data-close="printerModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="printer-list">
+                    <div class="printer-card printer-card-active">
+                        <div class="printer-card-status online"></div>
+                        <div class="printer-card-info">
+                            <h4 class="printer-card-name">GT Carbon S800</h4>
+                            <p class="printer-card-meta">820 × 620 × 600 mm · 连续纤维</p>
+                            <p class="printer-card-ip">192.168.1.101 · 在线</p>
+                        </div>
+                        <span class="printer-card-badge">当前</span>
+                    </div>
+                    <div class="printer-card">
+                        <div class="printer-card-status online"></div>
+                        <div class="printer-card-info">
+                            <h4 class="printer-card-name">GT Carbon S400</h4>
+                            <p class="printer-card-meta">420 × 320 × 400 mm · 双挤出</p>
+                            <p class="printer-card-ip">192.168.1.102 · 在线</p>
+                        </div>
+                        <button class="printer-card-action">选择</button>
+                    </div>
+                    <div class="printer-card">
+                        <div class="printer-card-status offline"></div>
+                        <div class="printer-card-info">
+                            <h4 class="printer-card-name">GT Pro X200</h4>
+                            <p class="printer-card-meta">200 × 200 × 250 mm · 单挤出</p>
+                            <p class="printer-card-ip">192.168.1.103 · 离线</p>
+                        </div>
+                        <button class="printer-card-action" disabled>离线</button>
+                    </div>
+                    <div class="printer-card printer-card-add">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
+                        <span>添加打印机</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         线材管理 Modal (Material Management)
+         ============================================ -->
+    <div class="modal-overlay" id="materialModal" style="display:none;">
+        <div class="modal-card modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left">耗材管理</h3>
+                <button class="modal-close" data-close="materialModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="material-table-wrapper">
+                    <table class="material-table">
+                        <thead>
+                            <tr>
+                                <th>颜色</th>
+                                <th>名称</th>
+                                <th>类型</th>
+                                <th>喷嘴温度</th>
+                                <th>热床温度</th>
+                                <th>密度</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="mat-color-dot" style="background:#E8A030"></span></td>
+                                <td>Generic ABS</td>
+                                <td>ABS</td>
+                                <td>240°C</td>
+                                <td>100°C</td>
+                                <td>1.04 g/cm³</td>
+                                <td><button class="table-btn">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="mat-color-dot" style="background:#4CAF50"></span></td>
+                                <td>Generic PLA</td>
+                                <td>PLA</td>
+                                <td>215°C</td>
+                                <td>60°C</td>
+                                <td>1.24 g/cm³</td>
+                                <td><button class="table-btn">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="mat-color-dot" style="background:#2196F3"></span></td>
+                                <td>Generic PETG</td>
+                                <td>PETG</td>
+                                <td>235°C</td>
+                                <td>80°C</td>
+                                <td>1.27 g/cm³</td>
+                                <td><button class="table-btn">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="mat-color-dot" style="background:#FF5722"></span></td>
+                                <td>Generic TPU</td>
+                                <td>TPU</td>
+                                <td>220°C</td>
+                                <td>50°C</td>
+                                <td>1.21 g/cm³</td>
+                                <td><button class="table-btn">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="mat-color-dot" style="background:#9C27B0"></span></td>
+                                <td>Nylon PA6</td>
+                                <td>Nylon</td>
+                                <td>260°C</td>
+                                <td>90°C</td>
+                                <td>1.14 g/cm³</td>
+                                <td><button class="table-btn">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="mat-color-dot" style="background:#333"></span></td>
+                                <td>Carbon Fiber PA</td>
+                                <td>PA-CF</td>
+                                <td>275°C</td>
+                                <td>100°C</td>
+                                <td>1.18 g/cm³</td>
+                                <td><button class="table-btn">编辑</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="material-actions">
+                    <button class="modal-btn modal-btn-secondary">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+                        添加耗材
+                    </button>
+                    <button class="modal-btn modal-btn-secondary">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M10 5l3 3-3 3"/></svg>
+                        导入配置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         导出设定 Modal (Export Settings)
+         ============================================ -->
+    <div class="modal-overlay" id="exportModal" style="display:none;">
+        <div class="modal-card modal-medium">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left">导出设置</h3>
+                <button class="modal-close" data-close="exportModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="pref-row">
+                    <label class="pref-label">导出格式</label>
+                    <select class="pref-select">
+                        <option selected>G-code (.gcode)</option>
+                        <option>3MF (.3mf)</option>
+                        <option>STL (.stl)</option>
+                        <option>OBJ (.obj)</option>
+                    </select>
+                </div>
+                <div class="pref-row">
+                    <label class="pref-label">G-code 风格</label>
+                    <select class="pref-select">
+                        <option selected>Marlin</option>
+                        <option>RepRap</option>
+                        <option>Klipper</option>
+                        <option>Griffin</option>
+                    </select>
+                </div>
+                <div class="pref-row">
+                    <label class="pref-label">嵌入缩略图</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="pref-row">
+                    <label class="pref-label">缩略图尺寸</label>
+                    <select class="pref-select">
+                        <option>128 × 128</option>
+                        <option selected>256 × 256</option>
+                        <option>512 × 512</option>
+                    </select>
+                </div>
+                <div class="pref-row">
+                    <label class="pref-label">包含注释</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="pref-row pref-row-stack">
+                    <label class="pref-label">自定义起始 G-code</label>
+                    <textarea class="pref-textarea" rows="4" placeholder="G28 ; Home all axes&#10;G29 ; Auto bed leveling&#10;M104 S{print_temp}">G28 ; Home all axes
+G29 ; Auto bed leveling
+M104 S215 ; Set extruder temp
+M140 S60 ; Set bed temp</textarea>
+                </div>
+                <div class="pref-row pref-row-stack">
+                    <label class="pref-label">自定义结束 G-code</label>
+                    <textarea class="pref-textarea" rows="3" placeholder="M104 S0 ; Turn off extruder&#10;M140 S0 ; Turn off bed">M104 S0 ; Turn off extruder
+M140 S0 ; Turn off bed
+G28 X Y ; Home X Y</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" data-close="exportModal">取消</button>
+                <button class="modal-btn modal-btn-primary" data-close="exportModal">导出</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         确认对话框 (Confirm Dialog)
+         ============================================ -->
+    <div class="modal-overlay" id="confirmModal" style="display:none;">
+        <div class="modal-card modal-small">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left" id="confirmTitle">确认操作</h3>
+                <button class="modal-close" data-close="confirmModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-text" id="confirmText">是否确认清空打印平台上的所有模型？此操作无法撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" data-close="confirmModal">取消</button>
+                <button class="modal-btn modal-btn-danger" data-close="confirmModal">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 新增打印机弹窗 ==================== -->
+    <div class="modal-overlay" id="addPrinterModal" style="display:none;">
+        <div class="modal-card addprinter-card">
+            <div class="modal-header">
+                <h3 class="modal-title modal-title-left">新增打印机</h3>
+                <button class="modal-close" data-close="addPrinterModal">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                </button>
+            </div>
+            <div class="addprinter-body">
+                <!-- 顶部下拉 -->
+                <div class="addprinter-dropdown-wrap">
+                    <select class="addprinter-mode-select">
+                        <option selected>Add a non-networked printer</option>
+                        <option>Add a networked printer</option>
+                    </select>
+                </div>
+
+                <div class="addprinter-main">
+                    <!-- 左侧品牌/型号树 -->
+                    <div class="addprinter-tree">
+                        <!-- GT Design 品牌 -->
+                        <div class="ap-brand" data-collapsed="false">
+                            <div class="ap-brand-header">
+                                <span class="ap-caret">⌄</span>
+                                <strong class="ap-brand-name">GT Design</strong>
+                            </div>
+                            <div class="ap-brand-body">
+                                <label class="ap-radio-item">
+                                    <input type="radio" name="addPrinter" value="ht440" checked data-name="GT Carbon HT440" data-mfr="GT Design" data-author="Kris Chun">
+                                    <span class="ap-radio-mark"></span>
+                                    <span>GT Carbon HT440</span>
+                                </label>
+                                <label class="ap-radio-item">
+                                    <input type="radio" name="addPrinter" value="s800" data-name="GT Carbon S800" data-mfr="GT Design" data-author="Kris Chun">
+                                    <span class="ap-radio-mark"></span>
+                                    <span>GT Carbon S800</span>
+                                </label>
+                                <label class="ap-radio-item">
+                                    <input type="radio" name="addPrinter" value="hcf600" data-name="GT HCF 600" data-mfr="GT Design" data-author="Kris Chun">
+                                    <span class="ap-radio-mark"></span>
+                                    <span>GT HCF 600</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Custom 品牌 -->
+                        <div class="ap-brand" data-collapsed="true">
+                            <div class="ap-brand-header">
+                                <span class="ap-caret">›</span>
+                                <strong class="ap-brand-name">Custom</strong>
+                            </div>
+                            <div class="ap-brand-body">
+                                <label class="ap-radio-item">
+                                    <input type="radio" name="addPrinter" value="custom-fff" data-name="Custom FFF printer" data-mfr="Custom" data-author="Ultimaker">
+                                    <span class="ap-radio-mark"></span>
+                                    <span>Custom FFF printer</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧详情 -->
+                    <div class="addprinter-detail">
+                        <h4 class="ap-detail-title" id="apDetailTitle">GT Carbon HT440</h4>
+                        <div class="ap-detail-row">
+                            <span class="ap-detail-label">Manufacturer</span>
+                            <span class="ap-detail-value" id="apDetailMfr">GT Design</span>
+                        </div>
+                        <div class="ap-detail-row">
+                            <span class="ap-detail-label">Profile author</span>
+                            <span class="ap-detail-value" id="apDetailAuthor">Kris Chun</span>
+                        </div>
+                        <div class="ap-detail-row">
+                            <span class="ap-detail-label">Printer name</span>
+                            <input type="text" class="ap-detail-input" id="apDetailName" value="GT Carbon HT440">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="addprinter-footer">
+                <button class="ap-link-btn">Add GT Design printer via Digital Factory</button>
+                <button class="modal-btn modal-btn-primary" data-close="addPrinterModal">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    
+    <!-- Custom Material Styles -->
+    <style>
+        .gt-custom-material {
+            border-bottom: 1px solid var(--border-color, #eee);
+            padding-bottom: 4px;
+        }
+        .gt-cm-title {
+            padding: 10px 14px 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .gt-cm-tabs {
+            display: flex;
+            padding: 0 14px;
+            gap: 0;
+        }
+        .gt-cm-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-tertiary);
+            border: 1px solid var(--border-color, #ddd);
+            border-bottom: none;
+            background: var(--bg-tertiary, #f5f5f5);
+            transition: all 0.15s;
+        }
+        .gt-cm-tab:first-child { border-radius: 6px 0 0 0; }
+        .gt-cm-tab:last-child { border-radius: 0 6px 0 0; }
+        .gt-cm-tab.active {
+            background: var(--bg-panel, #fff);
+            color: var(--brand-orange, #7B2FD4);
+            border-bottom: 2px solid var(--brand-orange, #7B2FD4);
+            font-weight: 600;
+        }
+        .gt-cm-body {
+            padding: 8px 14px 10px;
+        }
+        .gt-cm-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .gt-cm-row.gt-cm-disabled {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+        .gt-cm-sel {
+            padding: 4px 10px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            background: var(--bg-panel, #fff);
+            color: var(--text-primary);
+            font-size: 12px;
+            min-width: 140px;
+        }
+        .gt-cm-check { cursor: pointer; }
+        .gt-cm-checkmark { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--border-color, #ccc); border-radius: 3px; vertical-align: middle; position: relative; }
+        .gt-cm-check input:checked + .gt-cm-checkmark { background: var(--brand-orange, #7B2FD4); border-color: var(--brand-orange, #7B2FD4); }
+        .gt-cm-check input:checked + .gt-cm-checkmark::after { content: '✓'; position: absolute; top: -2px; left: 2px; color: #fff; font-size: 12px; }
+        .gt-cm-check input { display: none; }
+    </style>
+    <script>
+        // Custom Material tab switching
+        document.querySelectorAll('.gt-cm-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.gt-cm-tab').forEach(function(t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                var ext = tab.getAttribute('data-cmext');
+                document.querySelectorAll('.gt-cm-body').forEach(function(b) {
+                    b.style.display = b.getAttribute('data-cmext') === ext ? 'block' : 'none';
+                });
+            });
+        });
+        // Enable/disable toggle - grays out material/nozzle when unchecked
+        document.querySelectorAll('[data-cm-enable]').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                var body = cb.closest('.gt-cm-body');
+                var rows = body.querySelectorAll('.gt-cm-row');
+                for (var i = 1; i < rows.length; i++) {
+                    if (cb.checked) {
+                        rows[i].classList.remove('gt-cm-disabled');
+                        rows[i].querySelectorAll('select').forEach(function(s) { s.disabled = false; });
+                    } else {
+                        rows[i].classList.add('gt-cm-disabled');
+                        rows[i].querySelectorAll('select').forEach(function(s) { s.disabled = true; });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- GT Header Styles -->
+    <style>
+        .gt-header {
+            border-bottom: 1px solid var(--border-color, #eee);
+        }
+        .gt-header-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .gt-header-close {
+            background: none; border: none; font-size: 18px;
+            cursor: pointer; color: var(--text-tertiary); padding: 0 4px;
+        }
+        .gt-header-close:hover { color: var(--text-primary); }
+        .gt-header-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 14px 10px;
+        }
+        .gt-profile-label { font-size: 12px; color: var(--text-secondary); }
+        .gt-profile-select {
+            flex: 1;
+            padding: 4px 8px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            background: var(--bg-panel, #fff);
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+        .gt-profile-star {
+            background: none; border: none;
+            font-size: 16px; cursor: pointer;
+            color: var(--text-tertiary);
+        }
+        .gt-profile-star:hover { color: #E6A817; }
+        .gt-ext-tabs {
+            display: flex;
+            border-top: 1px solid var(--border-color, #eee);
+            border-bottom: 1px solid var(--border-color, #eee);
+        }
+        .gt-ext-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-tertiary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+        .gt-ext-tab:hover { color: var(--brand-orange, #7B2FD4); background: rgba(123,47,212,0.03); }
+        .gt-ext-tab.active {
+            color: var(--brand-orange, #7B2FD4);
+            border-bottom-color: var(--brand-orange, #7B2FD4);
+        }
+        .gt-ext-num { pointer-events: none; }
+        .gt-search-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border-color, #eee);
+        }
+        .gt-search-icon { width: 14px; height: 14px; opacity: 0.4; flex-shrink: 0; }
+        .gt-search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        .gt-search-input::placeholder { color: var(--text-tertiary); }
+        .gt-search-menu {
+            background: none; border: none;
+            font-size: 14px; cursor: pointer;
+            color: var(--text-tertiary);
+        }
+        .gt-search-menu:hover { color: var(--text-primary); }
+    </style>
+    <script>
+        // Extruder tab click - switches active tab (联动参数列表)
+        document.querySelectorAll('.gt-ext-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.gt-ext-tab').forEach(function(t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                // Future: switch parameter values based on tab.dataset.ext
+            });
+        });
+    </script>
+
+    <!-- Left Panel Tab Navigation -->
+    <style>
+        /* Tab Navigation Styles */
+        .lp-tab-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 8px 12px;
+            background: var(--bg-panel, #FFFFFF);
+            border-bottom: 1px solid var(--border-color, #E5E5E5);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .lp-tab-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary, #888);
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .lp-tab-btn:hover {
+            color: var(--brand-orange, #7B2FD4);
+            background: var(--brand-orange-dim, rgba(123, 47, 212, 0.08));
+        }
+        
+        .lp-tab-btn.active {
+            color: var(--brand-orange, #7B2FD4);
+            background: var(--brand-orange-dim, rgba(123, 47, 212, 0.1));
+            border-color: var(--brand-orange, #7B2FD4);
+        }
+        
+        .lp-tab-content {
+            padding: 4px 0;
+        }
+        
+        /* Show all param groups (flat list like original GT Slicer) */
+        .lp-param-group[data-tab] {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Adjust process panel for tabs */
+        .lp-process-panel {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lp-tab-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+    </style>
+    
+    <script>
+        // Left Panel Tab Navigation
+        (function() {
+            const tabButtons = document.querySelectorAll('.lp-tab-btn');
+            const paramGroups = document.querySelectorAll('.lp-param-group[data-tab]');
+            
+            function switchTab(tabName) {
+                // Update button states
+                tabButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tabName);
+                });
+                
+                // Show/hide param groups
+                paramGroups.forEach(group => {
+                    group.classList.toggle('tab-active', group.dataset.tab === tabName);
+                });
+            }
+            
+            // Add click handlers
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.dataset.tab);
+                });
+            });
+            
+            // Initialize: show first tab (basic)
+            switchTab('basic');
+        })();
+    </script>
+</body>
+</html>
