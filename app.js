@@ -9,6 +9,9 @@
 let viewport, canvas;
 let scene, camera, renderer, controls;
 let buildPlate, model, gridHelper;
+let transformControls;
+let modelInitialSize = { x: 0, y: 0, z: 0 }; // bounding box baseline for scale 100%
+let modelLocked = false;
 let mousePos = { x: 0, y: 0 };
 
 function initThreeJS() {
@@ -71,6 +74,31 @@ function initThreeJS() {
 
     // Show model info
     document.getElementById('modelInfo').style.display = 'flex';
+
+    // Compute initial bounding box for scale baseline
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    modelInitialSize.x = size.x;
+    modelInitialSize.y = size.y;
+    modelInitialSize.z = size.z;
+
+    // TransformControls
+    transformControls = new THREE.TransformControls(camera, renderer.domElement);
+    transformControls.attach(model);
+    transformControls.visible = false;
+    transformControls.enabled = false;
+    scene.add(transformControls);
+
+    // Disable OrbitControls while dragging gizmo
+    transformControls.addEventListener('dragging-changed', function(event) {
+        controls.enabled = !event.value;
+    });
+
+    // Sync panel values when gizmo is used
+    transformControls.addEventListener('objectChange', function() {
+        if (typeof syncPanelFromModel === 'function') syncPanelFromModel();
+    });
 
     // Start render loop
     animate();
@@ -1077,6 +1105,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ============================================
 // FLOATING TOOLBAR + TOOL PANELS
 // ============================================
+// Global function for gizmo objectChange → panel sync
+function syncPanelFromModel() {
+    if (typeof window._syncPanelFromModel === 'function') window._syncPanelFromModel();
+}
+
 (function() {
     const toolPanel = document.getElementById('toolPanel');
     const toolPanelTitle = document.getElementById('toolPanelTitle');
@@ -1084,82 +1117,311 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     const toolPanelBody = document.getElementById('toolPanelBody');
     let currentTool = 'select';
 
+    // --- Helper: read live model values ---
+    function getPos() {
+        if (!model) return { x: 0, y: 0, z: 0 };
+        return { x: model.position.x, y: model.position.y, z: model.position.z };
+    }
+    function getRot() {
+        if (!model) return { x: 0, y: 0, z: 0 };
+        return {
+            x: Math.round(THREE.MathUtils.radToDeg(model.rotation.x)),
+            y: Math.round(THREE.MathUtils.radToDeg(model.rotation.y)),
+            z: Math.round(THREE.MathUtils.radToDeg(model.rotation.z))
+        };
+    }
+    function getScaleMM() {
+        if (!model) return { x: 0, y: 0, z: 0 };
+        return {
+            x: (Math.abs(model.scale.x) * modelInitialSize.x).toFixed(4),
+            y: (Math.abs(model.scale.y) * modelInitialSize.y).toFixed(4),
+            z: (Math.abs(model.scale.z) * modelInitialSize.z).toFixed(4)
+        };
+    }
+    function getScalePct() {
+        if (!model) return { x: 100, y: 100, z: 100 };
+        return {
+            x: Math.round(Math.abs(model.scale.x) * 100),
+            y: Math.round(Math.abs(model.scale.y) * 100),
+            z: Math.round(Math.abs(model.scale.z) * 100)
+        };
+    }
+
+    // --- Sync panel inputs from model (called on gizmo drag) ---
+    window._syncPanelFromModel = function() {
+        if (currentTool === 'move') {
+            const inputs = toolPanelBody.querySelectorAll('.tp-input');
+            if (inputs.length >= 3) {
+                const p = getPos();
+                inputs[0].value = p.x.toFixed(4);
+                inputs[1].value = p.y.toFixed(4);
+                inputs[2].value = p.z.toFixed(4);
+            }
+        } else if (currentTool === 'scale') {
+            const inputs = toolPanelBody.querySelectorAll('.tp-input');
+            if (inputs.length >= 6) {
+                const mm = getScaleMM();
+                const pct = getScalePct();
+                inputs[0].value = mm.x; inputs[1].value = pct.x;
+                inputs[2].value = mm.y; inputs[3].value = pct.y;
+                inputs[4].value = mm.z; inputs[5].value = pct.z;
+            }
+        } else if (currentTool === 'rotate') {
+            const inputs = toolPanelBody.querySelectorAll('.tp-input');
+            if (inputs.length >= 3) {
+                const r = getRot();
+                inputs[0].value = r.x;
+                inputs[1].value = r.y;
+                inputs[2].value = r.z;
+            }
+        }
+    };
+
+    // --- Update TransformControls mode for current tool ---
+    function updateGizmoMode(tool) {
+        if (!transformControls || !model) return;
+        const modeMap = { move: 'translate', scale: 'scale', rotate: 'rotate' };
+        if (modeMap[tool]) {
+            transformControls.attach(model);
+            transformControls.setMode(modeMap[tool]);
+            transformControls.visible = true;
+            transformControls.enabled = !modelLocked;
+        } else {
+            transformControls.detach();
+            transformControls.visible = false;
+            transformControls.enabled = false;
+        }
+    }
+
     // Tools that have panels
     const toolPanelDefs = {
         move: {
             title: '移动',
             shortcut: 'T',
             render() {
+                const p = getPos();
                 return `
                     <div class="tp-row">
                         <span class="tp-axis-label axis-x">X</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" data-axis="x" type="number" value="${p.x.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
                     </div>
                     <div class="tp-row">
                         <span class="tp-axis-label axis-y">Y</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" data-axis="y" type="number" value="${p.y.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
                     </div>
                     <div class="tp-row">
                         <span class="tp-axis-label axis-z">Z</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" data-axis="z" type="number" value="${p.z.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
                     </div>
-                    <label class="tp-checkbox-row"><input type="checkbox"> 锁定模型</label>
-                    <label class="tp-checkbox-row"><input type="checkbox" checked> Drop Down Model</label>
+                    <label class="tp-checkbox-row"><input type="checkbox" id="lockModelCb"${modelLocked ? ' checked' : ''}> 锁定模型</label>
+                    <label class="tp-checkbox-row"><input type="checkbox" id="dropDownCb"> Drop Down Model</label>
                 `;
+            },
+            bind() {
+                const inputs = toolPanelBody.querySelectorAll('.tp-input');
+                inputs.forEach(inp => {
+                    inp.addEventListener('change', function() {
+                        if (!model) return;
+                        const axis = this.dataset.axis;
+                        model.position[axis] = parseFloat(this.value) || 0;
+                    });
+                });
+                // Lock model checkbox
+                const lockCb = toolPanelBody.querySelector('#lockModelCb');
+                if (lockCb) {
+                    lockCb.addEventListener('change', function() {
+                        modelLocked = this.checked;
+                        if (transformControls) {
+                            transformControls.enabled = !modelLocked;
+                        }
+                    });
+                }
+                // Drop Down Model
+                const dropCb = toolPanelBody.querySelector('#dropDownCb');
+                if (dropCb) {
+                    dropCb.addEventListener('change', function() {
+                        if (this.checked && model) {
+                            model.position.y = 0;
+                            inputs[1].value = '0.0000';
+                        }
+                    });
+                }
             }
         },
         scale: {
             title: '缩放',
             shortcut: 'S',
             render() {
+                const mm = getScaleMM();
+                const pct = getScalePct();
                 return `
                     <div class="tp-row">
                         <span class="tp-axis-label axis-x">X</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="165.3597" step="0.1"><span class="tp-input-unit">mm</span></div>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="100" step="1"><span class="tp-input-unit">%</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input tp-scale-mm" data-axis="x" type="number" value="${mm.x}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input tp-scale-pct" data-axis="x" type="number" value="${pct.x}" step="1"><span class="tp-input-unit">%</span></div>
                     </div>
                     <div class="tp-row">
                         <span class="tp-axis-label axis-y">Y</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="41.4252" step="0.1"><span class="tp-input-unit">mm</span></div>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="100" step="1"><span class="tp-input-unit">%</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input tp-scale-mm" data-axis="y" type="number" value="${mm.y}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input tp-scale-pct" data-axis="y" type="number" value="${pct.y}" step="1"><span class="tp-input-unit">%</span></div>
                     </div>
                     <div class="tp-row">
                         <span class="tp-axis-label axis-z">Z</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="177.4229" step="0.1"><span class="tp-input-unit">mm</span></div>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="100" step="1"><span class="tp-input-unit">%</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input tp-scale-mm" data-axis="z" type="number" value="${mm.z}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input tp-scale-pct" data-axis="z" type="number" value="${pct.z}" step="1"><span class="tp-input-unit">%</span></div>
                     </div>
                     <div class="tp-btn-row">
-                        <button class="tp-btn" title="重置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg></button>
+                        <button class="tp-btn" id="scaleResetBtn" title="重置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg></button>
                     </div>
                     <label class="tp-checkbox-row"><input type="checkbox"> 等距缩放（Snap Scaling）</label>
-                    <label class="tp-checkbox-row"><input type="checkbox" checked> 等比例缩放</label>
+                    <label class="tp-checkbox-row"><input type="checkbox" checked id="uniformScaleCb"> 等比例缩放</label>
                 `;
+            },
+            bind() {
+                const mmInputs = toolPanelBody.querySelectorAll('.tp-scale-mm');
+                const pctInputs = toolPanelBody.querySelectorAll('.tp-scale-pct');
+                const uniformCb = toolPanelBody.querySelector('#uniformScaleCb');
+
+                function refreshAll() {
+                    const mm = getScaleMM();
+                    const pct = getScalePct();
+                    const axes = ['x', 'y', 'z'];
+                    mmInputs.forEach((inp, i) => { inp.value = mm[axes[i]]; });
+                    pctInputs.forEach((inp, i) => { inp.value = pct[axes[i]]; });
+                }
+
+                // mm input → update scale
+                mmInputs.forEach(inp => {
+                    inp.addEventListener('change', function() {
+                        if (!model) return;
+                        const axis = this.dataset.axis;
+                        const newMM = parseFloat(this.value) || 0;
+                        const baseSize = modelInitialSize[axis];
+                        if (baseSize === 0) return;
+                        const sign = model.scale[axis] < 0 ? -1 : 1;
+                        const newScale = newMM / baseSize;
+                        model.scale[axis] = sign * newScale;
+                        if (uniformCb && uniformCb.checked) {
+                            const axes = ['x', 'y', 'z'];
+                            axes.forEach(a => {
+                                if (a !== axis) {
+                                    const s = model.scale[a] < 0 ? -1 : 1;
+                                    model.scale[a] = s * newScale;
+                                }
+                            });
+                        }
+                        refreshAll();
+                    });
+                });
+
+                // pct input → update scale
+                pctInputs.forEach(inp => {
+                    inp.addEventListener('change', function() {
+                        if (!model) return;
+                        const axis = this.dataset.axis;
+                        const newPct = parseFloat(this.value) || 100;
+                        const newScale = newPct / 100;
+                        const sign = model.scale[axis] < 0 ? -1 : 1;
+                        model.scale[axis] = sign * newScale;
+                        if (uniformCb && uniformCb.checked) {
+                            const axes = ['x', 'y', 'z'];
+                            axes.forEach(a => {
+                                if (a !== axis) {
+                                    const s = model.scale[a] < 0 ? -1 : 1;
+                                    model.scale[a] = s * newScale;
+                                }
+                            });
+                        }
+                        refreshAll();
+                    });
+                });
+
+                // Reset button
+                const resetBtn = toolPanelBody.querySelector('#scaleResetBtn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', function() {
+                        if (!model) return;
+                        model.scale.set(1, 1, 1);
+                        refreshAll();
+                        showToast('缩放已重置');
+                    });
+                }
             }
         },
         rotate: {
             title: '旋转',
             shortcut: 'R',
             render() {
+                const r = getRot();
                 return `
                     <div class="tp-row">
                         <span class="tp-axis-label axis-x">X</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="1"><span class="tp-input-unit">°</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" data-axis="x" type="number" value="${r.x}" step="1"><span class="tp-input-unit">°</span></div>
                     </div>
                     <div class="tp-row">
                         <span class="tp-axis-label axis-y">Y</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="1"><span class="tp-input-unit">°</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" data-axis="y" type="number" value="${r.y}" step="1"><span class="tp-input-unit">°</span></div>
                     </div>
                     <div class="tp-row">
                         <span class="tp-axis-label axis-z">Z</span>
-                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="1"><span class="tp-input-unit">°</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" data-axis="z" type="number" value="${r.z}" step="1"><span class="tp-input-unit">°</span></div>
                     </div>
                     <label class="tp-checkbox-row"><input type="checkbox" checked> 等距旋转（Snap Rotation）</label>
                     <div class="tp-btn-row">
-                        <button class="tp-btn" title="重置旋转"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg> 重置</button>
-                        <button class="tp-btn" title="自动摆放"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13h12"/><path d="M5 13V7l3-4 3 4v6"/></svg> 自动摆放</button>
-                        <button class="tp-btn" title="放平到底面"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="10" width="12" height="4"/><path d="M5 10V6h6v4"/></svg> 放平</button>
+                        <button class="tp-btn" id="rotResetBtn" title="重置旋转"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg> 重置</button>
+                        <button class="tp-btn" id="rotAutoBtn" title="自动摆放"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13h12"/><path d="M5 13V7l3-4 3 4v6"/></svg> 自动摆放</button>
+                        <button class="tp-btn" id="rotFlatBtn" title="放平到底面"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="10" width="12" height="4"/><path d="M5 10V6h6v4"/></svg> 放平</button>
                     </div>
                 `;
+            },
+            bind() {
+                const inputs = toolPanelBody.querySelectorAll('.tp-input');
+                inputs.forEach(inp => {
+                    inp.addEventListener('change', function() {
+                        if (!model) return;
+                        const axis = this.dataset.axis;
+                        if (!axis) return;
+                        model.rotation[axis] = THREE.MathUtils.degToRad(parseFloat(this.value) || 0);
+                    });
+                });
+
+                // Reset
+                const resetBtn = toolPanelBody.querySelector('#rotResetBtn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', function() {
+                        if (!model) return;
+                        model.rotation.set(0, 0, 0);
+                        inputs.forEach(inp => { if (inp.dataset.axis) inp.value = 0; });
+                        showToast('旋转已重置');
+                    });
+                }
+
+                // Auto orient (demo: small random rotation)
+                const autoBtn = toolPanelBody.querySelector('#rotAutoBtn');
+                if (autoBtn) {
+                    autoBtn.addEventListener('click', function() {
+                        if (!model) return;
+                        model.rotation.x = THREE.MathUtils.degToRad(Math.round(Math.random() * 30 - 15));
+                        model.rotation.y = THREE.MathUtils.degToRad(Math.round(Math.random() * 30 - 15));
+                        model.rotation.z = THREE.MathUtils.degToRad(Math.round(Math.random() * 30 - 15));
+                        const r = getRot();
+                        inputs[0].value = r.x;
+                        inputs[1].value = r.y;
+                        inputs[2].value = r.z;
+                        showToast('已自动摆放');
+                    });
+                }
+
+                // Lay flat
+                const flatBtn = toolPanelBody.querySelector('#rotFlatBtn');
+                if (flatBtn) {
+                    flatBtn.addEventListener('click', function() {
+                        if (!model) return;
+                        model.rotation.set(0, 0, 0);
+                        inputs.forEach(inp => { if (inp.dataset.axis) inp.value = 0; });
+                        showToast('已放平到底面');
+                    });
+                }
             }
         },
         mirror: {
@@ -1168,14 +1430,25 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             render() {
                 return `
                     <div class="tp-mirror-grid">
-                        <button class="tp-mirror-btn mirror-x"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4v8z"/></svg> X+</button>
-                        <button class="tp-mirror-btn mirror-x"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8l-4-4v8z"/></svg> X-</button>
-                        <button class="tp-mirror-btn mirror-y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 4l-4 4h8z"/></svg> Y+</button>
-                        <button class="tp-mirror-btn mirror-y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12l-4-4h8z"/></svg> Y-</button>
-                        <button class="tp-mirror-btn mirror-z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4v8z"/></svg> Z+</button>
-                        <button class="tp-mirror-btn mirror-z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8l-4-4v8z"/></svg> Z-</button>
+                        <button class="tp-mirror-btn mirror-x" data-mirror="x"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4v8z"/></svg> X+</button>
+                        <button class="tp-mirror-btn mirror-x" data-mirror="x"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8l-4-4v8z"/></svg> X-</button>
+                        <button class="tp-mirror-btn mirror-y" data-mirror="y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 4l-4 4h8z"/></svg> Y+</button>
+                        <button class="tp-mirror-btn mirror-y" data-mirror="y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12l-4-4h8z"/></svg> Y-</button>
+                        <button class="tp-mirror-btn mirror-z" data-mirror="z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4v8z"/></svg> Z+</button>
+                        <button class="tp-mirror-btn mirror-z" data-mirror="z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8l-4-4v8z"/></svg> Z-</button>
                     </div>
                 `;
+            },
+            bind() {
+                toolPanelBody.querySelectorAll('.tp-mirror-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (!model) return;
+                        const axis = this.dataset.mirror;
+                        model.scale[axis] *= -1;
+                        const axisLabel = axis.toUpperCase();
+                        showToast('已沿 ' + axisLabel + ' 轴镜像');
+                    });
+                });
             }
         },
         permodel: {
@@ -1192,6 +1465,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
                     <p class="tp-desc">网格类型: 正常模式</p>
                     <button class="tp-btn">选择设置</button>
                 `;
+            },
+            bind() {
+                const meshBtns = toolPanelBody.querySelectorAll('.tp-mesh-btn');
+                const meshLabels = ['正常模式', '填充模式', '线框模式', '自定义模式'];
+                meshBtns.forEach((btn, i) => {
+                    btn.addEventListener('click', () => {
+                        meshBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        toolPanelBody.querySelector('.tp-desc').textContent = '网格类型: ' + meshLabels[i];
+                    });
+                });
             }
         },
         supportblocker: {
@@ -1221,23 +1505,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         toolPanel.offsetHeight; // reflow
         toolPanel.style.animation = '';
 
-        // Per-model mesh button toggling
-        if (tool === 'permodel') {
-            const meshBtns = toolPanelBody.querySelectorAll('.tp-mesh-btn');
-            const meshLabels = ['正常模式', '填充模式', '线框模式', '自定义模式'];
-            meshBtns.forEach((btn, i) => {
-                btn.addEventListener('click', () => {
-                    meshBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    toolPanelBody.querySelector('.tp-desc').textContent = '网格类型: ' + meshLabels[i];
-                });
-            });
-        }
+        // Bind events for this tool
+        if (def.bind) def.bind();
+
+        // Update gizmo mode
+        updateGizmoMode(tool);
     }
 
     function hideToolPanel() {
         toolPanel.style.display = 'none';
         floatingToolbar.classList.remove('panel-open');
+        updateGizmoMode('select');
     }
 
     // Tool button clicks
