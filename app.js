@@ -1578,14 +1578,14 @@ window._viewCube = (function() {
     const svg = document.getElementById('viewCubeSVG');
     if (!svg) return {};
 
-    const SIZE = 120;
+    const SIZE = 140;
     const CENTER = SIZE / 2;
-    const CUBE_SIZE = 32; // half-size of cube
+    const CUBE_SIZE = 36; // half-size of cube (bigger for 140px)
 
     // Cube vertices in 3D (centered at origin)
     const vertices = [
-        [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], // back face
-        [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1], // front face
+        [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], // back face (0-3)
+        [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1], // front face (4-7)
     ];
 
     // Faces: [vertex indices], label, viewName
@@ -1598,27 +1598,42 @@ window._viewCube = (function() {
         { verts: [0, 1, 5, 4], label: '下', view: 'bottom' },
     ];
 
+    // 12 edges with direction labels
+    const edgeDefs = [
+        { verts: [0,1], label: '后下' }, { verts: [1,2], label: '右后' },
+        { verts: [2,3], label: '后上' }, { verts: [3,0], label: '左后' },
+        { verts: [4,5], label: '前下' }, { verts: [5,6], label: '右前' },
+        { verts: [6,7], label: '前上' }, { verts: [7,4], label: '左前' },
+        { verts: [0,4], label: '左下' }, { verts: [1,5], label: '右下' },
+        { verts: [2,6], label: '右上' }, { verts: [3,7], label: '左上' },
+    ];
+
+    // 8 corners with combined labels and view directions
+    const cornerDefs = [
+        { vert: 0, label: '左后下' }, { vert: 1, label: '右后下' },
+        { vert: 2, label: '右后上' }, { vert: 3, label: '左后上' },
+        { vert: 4, label: '左前下' }, { vert: 5, label: '右前下' },
+        { vert: 6, label: '右前上' }, { vert: 7, label: '左前上' },
+    ];
+
     // Current rotation angles (synced with camera)
     let rotX = -0.5; // pitch
     let rotY = 0.6;  // yaw
 
     let hoveredFace = null;
-    let elements = [];
+    let hoveredEdge = null;
+    let hoveredCorner = null;
+    let faceElements = [];
 
     function project(x, y, z) {
-        // Apply Y rotation (yaw)
         const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
         let x1 = x * cosY + z * sinY;
         let z1 = -x * sinY + z * cosY;
-        // Apply X rotation (pitch)
         const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
         let y1 = y * cosX - z1 * sinX;
         let z2 = y * sinX + z1 * cosX;
-
-        // Simple perspective
         const perspective = 4;
         const scale = perspective / (perspective + z2 * 0.3);
-
         return {
             x: CENTER + x1 * CUBE_SIZE * scale,
             y: CENTER - y1 * CUBE_SIZE * scale,
@@ -1632,53 +1647,86 @@ window._viewCube = (function() {
             const [vx, vy, vz] = vertices[i];
             return project(vx, vy, vz);
         });
-        // Cross product for face normal z-component
         const ax = v[1].x - v[0].x, ay = v[1].y - v[0].y;
         const bx = v[3].x - v[0].x, by = v[3].y - v[0].y;
         return ax * by - ay * bx;
     }
 
+    // Get 3D face normal z-component (how much the face points toward camera)
+    function getFaceFrontness(faceIdx) {
+        const f = faces[faceIdx];
+        // Face normals in object space
+        const normals = [
+            [0,0,1], [0,0,-1], [1,0,0], [-1,0,0], [0,1,0], [0,-1,0]
+        ];
+        const [nx, ny, nz] = normals[faceIdx];
+        // Rotate normal same way as vertices
+        const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+        let nx1 = nx * cosY + nz * sinY;
+        let nz1 = -nx * sinY + nz * cosY;
+        const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+        let ny1 = ny * cosX - nz1 * sinX;
+        let nz2 = ny * sinX + nz1 * cosX;
+        return nz2; // positive = facing camera
+    }
+
+    // Unique gradient ID counter
+    let gradIdCounter = 0;
+
     function render() {
         const isDark = document.body.classList.contains('theme-dark');
+        gradIdCounter = 0;
 
         // Colors
-        const faceColor = isDark ? '#272835' : '#F2F3F5';
+        const baseFaceColor = isDark ? [39, 40, 53] : [242, 243, 245];
         const faceStroke = isDark ? '#464C5E' : '#C1C7CF';
         const hoverColor = isDark ? '#3A225B' : '#EBDCFF';
         const hoverStroke = isDark ? '#8B52DC' : '#7B2FD4';
         const textColor = isDark ? '#A4ABB8' : '#666D80';
         const hoverTextColor = isDark ? '#DBBFF8' : '#7B2FD4';
+        const edgeHighlight = isDark ? 'rgba(180,190,220,0.35)' : 'rgba(120,130,160,0.25)';
+        const edgeHoverColor = isDark ? '#8B52DC' : '#7B2FD4';
+        const cornerColor = isDark ? 'rgba(160,170,200,0.5)' : 'rgba(100,110,140,0.4)';
+        const cornerHoverColor = isDark ? '#DBBFF8' : '#7B2FD4';
 
-        // Sort faces by average z (back to front)
+        // Sort faces by average z
         const faceOrder = faces.map((f, i) => {
             const avgZ = f.verts.reduce((sum, vi) => {
                 const [vx, vy, vz] = vertices[vi];
                 return sum + project(vx, vy, vz).z;
             }, 0) / 4;
             return { index: i, avgZ, normalZ: getFaceNormalZ(i) };
-        }).filter(f => f.normalZ > 0) // only front-facing
+        }).filter(f => f.normalZ > 0)
           .sort((a, b) => a.avgZ - b.avgZ);
 
+        let defs = '';
         let html = '';
-        elements = [];
+        faceElements = [];
 
-        // Draw edges first (back edges)
-        const edgePairs = [
-            [0,1],[1,2],[2,3],[3,0], // back
-            [4,5],[5,6],[6,7],[7,4], // front
-            [0,4],[1,5],[2,6],[3,7], // connecting
-        ];
-        edgePairs.forEach(([a,b]) => {
+        // --- SVG Filters ---
+        defs += `
+        <filter id="vcGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="vcEdgeGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>`;
+
+        // --- Back edges (wireframe, subtle) ---
+        edgeDefs.forEach(({ verts: [a, b] }) => {
             const [ax,ay,az] = vertices[a];
             const [bx,by,bz] = vertices[b];
             const pa = project(ax, ay, az);
             const pb = project(bx, by, bz);
-            html += `<line x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" stroke="${faceStroke}" stroke-width="0.5" opacity="0.3"/>`;
+            html += `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${faceStroke}" stroke-width="0.5" opacity="0.2"/>`;
         });
 
-        // Draw visible faces
+        // --- Visible faces with gradients ---
         faceOrder.forEach(({ index }) => {
             const f = faces[index];
+            const frontness = getFaceFrontness(index);
             const projected = f.verts.map(vi => {
                 const [vx, vy, vz] = vertices[vi];
                 return project(vx, vy, vz);
@@ -1686,25 +1734,115 @@ window._viewCube = (function() {
 
             const pathD = projected.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z';
             const isHovered = hoveredFace === index;
-            const fill = isHovered ? hoverColor : faceColor;
-            const stroke = isHovered ? hoverStroke : faceStroke;
-            const txtColor = isHovered ? hoverTextColor : textColor;
 
-            // Face polygon
-            html += `<path d="${pathD}" fill="${fill}" stroke="${stroke}" stroke-width="${isHovered ? 1.5 : 1}" 
-                      data-face="${index}" style="cursor:pointer;" opacity="0.92"/>`;
+            // Brightness based on frontness (0..1 → how much face points at camera)
+            const brightness = Math.max(0, Math.min(1, frontness * 0.8 + 0.2));
 
-            // Label centered on face
+            if (!isHovered) {
+                // Create gradient for each face (corner-to-corner brightness variation)
+                const gid = `vcFGrad${gradIdCounter++}`;
+                const [r, g, b] = baseFaceColor;
+                const lightR = Math.min(255, r + Math.round(30 * brightness));
+                const lightG = Math.min(255, g + Math.round(30 * brightness));
+                const lightB = Math.min(255, b + Math.round(30 * brightness));
+                const darkR = Math.max(0, r - Math.round(15 * (1 - brightness)));
+                const darkG = Math.max(0, g - Math.round(15 * (1 - brightness)));
+                const darkB = Math.max(0, b - Math.round(15 * (1 - brightness)));
+
+                defs += `<linearGradient id="${gid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="rgb(${lightR},${lightG},${lightB})"/>
+                    <stop offset="100%" stop-color="rgb(${darkR},${darkG},${darkB})"/>
+                </linearGradient>`;
+
+                html += `<path d="${pathD}" fill="url(#${gid})" stroke="${faceStroke}" stroke-width="1" data-face="${index}" style="cursor:pointer;" opacity="0.94"/>`;
+            } else {
+                // Hovered face: glow effect
+                html += `<path d="${pathD}" fill="${hoverColor}" stroke="${hoverStroke}" stroke-width="1.5" data-face="${index}" style="cursor:pointer;" opacity="0.96" filter="url(#vcGlow)"/>`;
+            }
+
+            // Label
             const cx = projected.reduce((s, p) => s + p.x, 0) / 4;
             const cy = projected.reduce((s, p) => s + p.y, 0) / 4;
-            html += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" text-anchor="middle" dominant-baseline="central" 
-                      fill="${txtColor}" font-size="11" font-weight="${isHovered ? '600' : '500'}" 
+            const fontSize = isHovered ? 13 : 11;
+            const txtColor = isHovered ? hoverTextColor : textColor;
+            html += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" text-anchor="middle" dominant-baseline="central"
+                      fill="${txtColor}" font-size="${fontSize}" font-weight="${isHovered ? '700' : '500'}"
                       font-family="-apple-system, sans-serif" pointer-events="none">${f.label}</text>`;
 
-            elements.push({ index, path: pathD, projected });
+            faceElements.push({ index, path: pathD, projected });
         });
 
-        svg.innerHTML = html;
+        // --- Front edges (highlighted, metallic look) ---
+        const visibleFaceSet = new Set(faceOrder.map(f => f.index));
+        edgeDefs.forEach(({ verts: [a, b] }, edgeIdx) => {
+            const [ax,ay,az] = vertices[a];
+            const [bx,by,bz] = vertices[b];
+            const pa = project(ax, ay, az);
+            const pb = project(bx, by, bz);
+            // Check if edge is shared by at least one visible face
+            const edgeVisible = faces.some((f, fi) => visibleFaceSet.has(fi) && f.verts.includes(a) && f.verts.includes(b));
+            if (!edgeVisible) return;
+
+            const isEdgeHovered = hoveredEdge === edgeIdx;
+            const strokeW = isEdgeHovered ? 2.5 : 1.2;
+            const strokeC = isEdgeHovered ? edgeHoverColor : edgeHighlight;
+            const filterAttr = isEdgeHovered ? ' filter="url(#vcEdgeGlow)"' : '';
+            html += `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${strokeC}" stroke-width="${strokeW}" stroke-linecap="round"${filterAttr}/>`;
+
+            // Edge hover label
+            if (isEdgeHovered) {
+                const mx = (pa.x + pb.x) / 2;
+                const my = (pa.y + pb.y) / 2;
+                html += `<rect x="${mx - 16}" y="${my - 9}" width="32" height="18" rx="4" fill="${isDark ? 'rgba(30,32,44,0.85)' : 'rgba(255,255,255,0.9)'}" stroke="${edgeHoverColor}" stroke-width="0.5"/>`;
+                html += `<text x="${mx}" y="${my}" text-anchor="middle" dominant-baseline="central" fill="${hoverTextColor}" font-size="9" font-weight="600" font-family="-apple-system, sans-serif" pointer-events="none">${edgeDefs[edgeIdx].label}</text>`;
+            }
+        });
+
+        // --- Corner dots ---
+        vertices.forEach(([vx, vy, vz], vi) => {
+            const p = project(vx, vy, vz);
+            // Only show corners connected to visible faces
+            const cornerVisible = faces.some((f, fi) => visibleFaceSet.has(fi) && f.verts.includes(vi));
+            if (!cornerVisible) return;
+
+            const isCornerHovered = hoveredCorner === vi;
+            const cr = isCornerHovered ? 3 : 2;
+            const cc = isCornerHovered ? cornerHoverColor : cornerColor;
+            const filterAttr = isCornerHovered ? ' filter="url(#vcEdgeGlow)"' : '';
+            html += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${cr}" fill="${cc}"${filterAttr}/>`;
+
+            // Corner hover label
+            if (isCornerHovered) {
+                const label = cornerDefs[vi].label;
+                const lw = label.length * 9 + 8;
+                html += `<rect x="${p.x - lw/2}" y="${p.y - 20}" width="${lw}" height="16" rx="4" fill="${isDark ? 'rgba(30,32,44,0.85)' : 'rgba(255,255,255,0.9)'}" stroke="${cornerHoverColor}" stroke-width="0.5"/>`;
+                html += `<text x="${p.x}" y="${p.y - 12}" text-anchor="middle" dominant-baseline="central" fill="${hoverTextColor}" font-size="8" font-weight="600" font-family="-apple-system, sans-serif" pointer-events="none">${label}</text>`;
+            }
+        });
+
+        // --- Axis indicator (bottom-left area of SVG) ---
+        const axisOrigin = { x: 22, y: SIZE - 22 };
+        const axisLen = 14;
+        const axes = [
+            { dir: [1, 0, 0], color: '#E53935', label: 'X' },  // red
+            { dir: [0, 1, 0], color: '#43A047', label: 'Y' },  // green
+            { dir: [0, 0, 1], color: '#1E88E5', label: 'Z' },  // blue
+        ];
+        axes.forEach(({ dir: [dx, dy, dz], color, label }) => {
+            // Rotate axis direction same way as cube
+            const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+            let x1 = dx * cosY + dz * sinY;
+            let z1 = -dx * sinY + dz * cosY;
+            const cosXr = Math.cos(rotX), sinXr = Math.sin(rotX);
+            let y1 = dy * cosXr - z1 * sinXr;
+            // Project to 2D (no perspective for axes, just orthographic)
+            const ex = axisOrigin.x + x1 * axisLen;
+            const ey = axisOrigin.y - y1 * axisLen;
+            html += `<line x1="${axisOrigin.x}" y1="${axisOrigin.y}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${color}" stroke-width="2" stroke-linecap="round" opacity="0.85"/>`;
+            html += `<text x="${(ex + (ex - axisOrigin.x) * 0.3).toFixed(1)}" y="${(ey + (ey - axisOrigin.y) * 0.3).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-size="8" font-weight="700" font-family="-apple-system, sans-serif" opacity="0.85">${label}</text>`;
+        });
+
+        svg.innerHTML = `<defs>${defs}</defs>${html}`;
     }
 
     // Sync ViewCube rotation with Three.js camera
@@ -1735,7 +1873,6 @@ window._viewCube = (function() {
         const preset = viewPresets[viewName];
         if (!preset || !camera || !controls) return;
 
-        // Animate camera to target position
         const startPos = camera.position.clone();
         const startTarget = controls.target.clone();
         const endPos = new THREE.Vector3(...preset.pos);
@@ -1746,7 +1883,6 @@ window._viewCube = (function() {
         function animateView(time) {
             const elapsed = time - startTime;
             const t = Math.min(elapsed / duration, 1);
-            // Ease out cubic
             const ease = 1 - Math.pow(1 - t, 3);
 
             camera.position.lerpVectors(startPos, endPos, ease);
@@ -1760,6 +1896,16 @@ window._viewCube = (function() {
         requestAnimationFrame(animateView);
     }
 
+    // Distance from point to line segment
+    function pointToSegmentDist(px, py, ax, ay, bx, by) {
+        const dx = bx - ax, dy = by - ay;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+        let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    }
+
     // Mouse events
     const container = document.getElementById('viewCubeContainer');
     if (container) {
@@ -1769,18 +1915,55 @@ window._viewCube = (function() {
             const my = (e.clientY - rect.top) * (SIZE / rect.height);
 
             hoveredFace = null;
-            // Check faces in reverse (top-most first)
-            for (let i = elements.length - 1; i >= 0; i--) {
-                if (pointInPolygon(mx, my, elements[i].projected)) {
-                    hoveredFace = elements[i].index;
+            hoveredEdge = null;
+            hoveredCorner = null;
+
+            // 1. Check corners first (highest priority, 8px radius)
+            const visibleFaceSet = new Set(faceElements.map(el => el.index));
+            for (let vi = 0; vi < vertices.length; vi++) {
+                const cornerVisible = faces.some((f, fi) => visibleFaceSet.has(fi) && f.verts.includes(vi));
+                if (!cornerVisible) continue;
+                const [vx, vy, vz] = vertices[vi];
+                const p = project(vx, vy, vz);
+                if (Math.hypot(mx - p.x, my - p.y) < 8) {
+                    hoveredCorner = vi;
                     break;
                 }
             }
+
+            // 2. Check edges (5px proximity)
+            if (hoveredCorner === null) {
+                edgeDefs.forEach(({ verts: [a, b] }, idx) => {
+                    if (hoveredEdge !== null) return;
+                    const edgeVisible = faces.some((f, fi) => visibleFaceSet.has(fi) && f.verts.includes(a) && f.verts.includes(b));
+                    if (!edgeVisible) return;
+                    const [ax,ay,az] = vertices[a];
+                    const [bx,by,bz] = vertices[b];
+                    const pa = project(ax, ay, az);
+                    const pb = project(bx, by, bz);
+                    if (pointToSegmentDist(mx, my, pa.x, pa.y, pb.x, pb.y) < 5) {
+                        hoveredEdge = idx;
+                    }
+                });
+            }
+
+            // 3. Check faces (lowest priority)
+            if (hoveredCorner === null && hoveredEdge === null) {
+                for (let i = faceElements.length - 1; i >= 0; i--) {
+                    if (pointInPolygon(mx, my, faceElements[i].projected)) {
+                        hoveredFace = faceElements[i].index;
+                        break;
+                    }
+                }
+            }
+
             render();
         });
 
         container.addEventListener('mouseleave', () => {
             hoveredFace = null;
+            hoveredEdge = null;
+            hoveredCorner = null;
             render();
         });
 
@@ -1788,6 +1971,7 @@ window._viewCube = (function() {
             if (hoveredFace !== null) {
                 setView(faces[hoveredFace].view);
             }
+            // Edge/corner clicks could navigate to diagonal views in the future
         });
     }
 
