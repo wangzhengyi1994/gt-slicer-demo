@@ -1820,26 +1820,31 @@ window._viewCube = (function() {
             }
         });
 
-        // --- Axis indicator (bottom-left area of SVG) ---
-        const axisOrigin = { x: 22, y: SIZE - 22 };
-        const axisLen = 14;
+        // --- Axis indicator (centered on cube) ---
+        const axisOrigin = { x: CENTER, y: CENTER };
+        const axisLen = CUBE_SIZE * 1.3;
         const axes = [
             { dir: [1, 0, 0], color: '#E53935', label: 'X' },  // red
             { dir: [0, 1, 0], color: '#43A047', label: 'Y' },  // green
             { dir: [0, 0, 1], color: '#1E88E5', label: 'Z' },  // blue
         ];
+        // Draw origin dot
+        const originProj = project(0, 0, 0);
         axes.forEach(({ dir: [dx, dy, dz], color, label }) => {
-            // Rotate axis direction same way as cube
-            const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-            let x1 = dx * cosY + dz * sinY;
-            let z1 = -dx * sinY + dz * cosY;
-            const cosXr = Math.cos(rotX), sinXr = Math.sin(rotX);
-            let y1 = dy * cosXr - z1 * sinXr;
-            // Project to 2D (no perspective for axes, just orthographic)
-            const ex = axisOrigin.x + x1 * axisLen;
-            const ey = axisOrigin.y - y1 * axisLen;
-            html += `<line x1="${axisOrigin.x}" y1="${axisOrigin.y}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${color}" stroke-width="2" stroke-linecap="round" opacity="0.85"/>`;
-            html += `<text x="${(ex + (ex - axisOrigin.x) * 0.3).toFixed(1)}" y="${(ey + (ey - axisOrigin.y) * 0.3).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-size="8" font-weight="700" font-family="-apple-system, sans-serif" opacity="0.85">${label}</text>`;
+            // Use the same project() function as the cube for consistent perspective
+            const tip = project(dx * 1.3, dy * 1.3, dz * 1.3);
+            const ex = tip.x;
+            const ey = tip.y;
+            html += `<line x1="${originProj.x.toFixed(1)}" y1="${originProj.y.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>`;
+            // Arrow tip
+            const tipLen = 4;
+            const angle = Math.atan2(ey - originProj.y, ex - originProj.x);
+            const a1x = ex - tipLen * Math.cos(angle - 0.4);
+            const a1y = ey - tipLen * Math.sin(angle - 0.4);
+            const a2x = ex - tipLen * Math.cos(angle + 0.4);
+            const a2y = ey - tipLen * Math.sin(angle + 0.4);
+            html += `<path d="M${ex.toFixed(1)},${ey.toFixed(1)} L${a1x.toFixed(1)},${a1y.toFixed(1)} M${ex.toFixed(1)},${ey.toFixed(1)} L${a2x.toFixed(1)},${a2y.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>`;
+            html += `<text x="${(ex + (ex - originProj.x) * 0.25).toFixed(1)}" y="${(ey + (ey - originProj.y) * 0.25).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-size="10" font-weight="700" font-family="-apple-system, sans-serif" opacity="0.9">${label}</text>`;
         });
 
         svg.innerHTML = `<defs>${defs}</defs>${html}`;
