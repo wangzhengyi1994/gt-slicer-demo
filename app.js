@@ -693,6 +693,8 @@ document.addEventListener('click', (e) => {
         }
 
         openModal(modalId);
+        // Close menus when opening modal from menu
+        document.querySelectorAll('.dropdown-menu').forEach(d => { d.style.display = ''; });
         e.stopPropagation();
     }
 });
@@ -1525,6 +1527,401 @@ window._viewCube = (function() {
 
     return { render, syncWithCamera };
 })();
+
+// ============================================
+// TOAST SYSTEM
+// ============================================
+(function() {
+    // Inject toast styles
+    const style = document.createElement('style');
+    style.textContent = `
+        #toastContainer {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: rgba(0, 0, 0, 0.78);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            pointer-events: auto;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: toastIn 0.25s ease forwards;
+            white-space: nowrap;
+        }
+        .toast.toast-out {
+            animation: toastOut 0.25s ease forwards;
+        }
+        @keyframes toastIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(16px); }
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+function showToast(msg) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => {
+        el.classList.add('toast-out');
+        el.addEventListener('animationend', () => el.remove());
+    }, 2000);
+}
+
+// ============================================
+// CONFIRM DIALOG HELPER
+// ============================================
+function showConfirm(title, text) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = text;
+    openModal('confirmModal');
+}
+
+// ============================================
+// CLOSE ALL MENUS HELPER
+// ============================================
+function closeAllMenus() {
+    document.querySelectorAll('.dropdown-menu').forEach(d => {
+        d.style.display = '';
+    });
+}
+
+// ============================================
+// FILE INPUT
+// ============================================
+const fileInput = document.getElementById('fileInput');
+if (fileInput) {
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            showToast('已加载: ' + this.files[0].name);
+            this.value = '';
+        }
+    });
+}
+
+function triggerOpenFile() {
+    const fi = document.getElementById('fileInput');
+    if (fi) fi.click();
+}
+
+// ============================================
+// MENU ITEM CLICK HANDLER
+// ============================================
+// Toggle states for view menu
+let gridVisible = true;
+let axisVisible = true;
+
+function getMenuLabel(item) {
+    const labelEl = item.querySelector('.menu-label');
+    if (labelEl) {
+        return labelEl.textContent.trim();
+    }
+    return item.textContent.trim().replace(/[›✓]/g, '').trim();
+}
+
+document.addEventListener('click', (e) => {
+    const item = e.target.closest('.dropdown-item');
+    if (!item) return;
+
+    // Skip items that have submenus (they just open submenus)
+    if (item.classList.contains('has-submenu')) return;
+
+    // Skip items that already have data-modal (handled by existing modal system)
+    if (item.getAttribute('data-modal')) return;
+
+    // Skip items that have data-close (modal close buttons)
+    if (item.getAttribute('data-close')) return;
+
+    const label = getMenuLabel(item);
+
+    // --- FILE MENU ---
+    if (label.includes('新建项目')) {
+        closeAllMenus();
+        showConfirm('新建项目', '是否新建项目? 当前未保存的更改将丢失');
+        return;
+    }
+    if (label.includes('打开文件')) {
+        closeAllMenus();
+        triggerOpenFile();
+        return;
+    }
+    if (item.classList.contains('recent-file')) {
+        closeAllMenus();
+        showToast('已加载: ' + label);
+        return;
+    }
+    if (label.includes('保存项目')) {
+        closeAllMenus();
+        showToast('项目已保存');
+        return;
+    }
+    if (label.includes('另存为')) {
+        closeAllMenus();
+        showToast('项目已另存为');
+        return;
+    }
+    if (label.includes('导入')) {
+        closeAllMenus();
+        triggerOpenFile();
+        return;
+    }
+    if (label.includes('导出')) {
+        closeAllMenus();
+        const exportModal = document.getElementById('exportModal');
+        if (exportModal) {
+            openModal('exportModal');
+        } else {
+            showToast('导出完成');
+        }
+        return;
+    }
+    if (label.includes('退出')) {
+        closeAllMenus();
+        showConfirm('退出', '确定要退出吗?');
+        return;
+    }
+
+    // --- EDIT MENU ---
+    if (label.includes('撤销')) {
+        closeAllMenus();
+        showToast('撤销');
+        return;
+    }
+    if (label.includes('重做')) {
+        closeAllMenus();
+        showToast('重做');
+        return;
+    }
+    if (label.includes('全选')) {
+        closeAllMenus();
+        showToast('已全选所有模型');
+        return;
+    }
+    if (label.includes('自动排列')) {
+        closeAllMenus();
+        showToast('已自动排列模型');
+        return;
+    }
+    if (label.includes('复制所选')) {
+        closeAllMenus();
+        showToast('已复制所选模型');
+        return;
+    }
+    if (label.includes('删除所选')) {
+        closeAllMenus();
+        showToast('已删除所选模型');
+        return;
+    }
+    if (label.includes('重置所有模型位置')) {
+        closeAllMenus();
+        showToast('已重置所有模型位置');
+        return;
+    }
+    if (label.includes('重置所有模型旋转')) {
+        closeAllMenus();
+        showToast('已重置所有模型旋转');
+        return;
+    }
+    if (label.includes('取消编组')) {
+        closeAllMenus();
+        showToast('已取消编组');
+        return;
+    }
+    if (label.includes('合并')) {
+        closeAllMenus();
+        showToast('已合并');
+        return;
+    }
+    if (label.includes('编组')) {
+        closeAllMenus();
+        showToast('已编组');
+        return;
+    }
+
+    // --- VIEW MENU ---
+    if (label.includes('显示网格')) {
+        closeAllMenus();
+        gridVisible = !gridVisible;
+        const check = gridVisible ? '✓ ' : '';
+        const labelEl = item.querySelector('.menu-label');
+        if (labelEl) {
+            // Preserve SVG icon, update text
+            const svg = labelEl.querySelector('svg');
+            labelEl.textContent = '';
+            if (svg) labelEl.appendChild(svg);
+            labelEl.appendChild(document.createTextNode(check + '显示网格'));
+        }
+        showToast(gridVisible ? '网格已显示' : '网格已隐藏');
+        // Toggle grid in scene
+        if (typeof gridHelper !== 'undefined' && gridHelper) {
+            gridHelper.visible = gridVisible;
+        }
+        return;
+    }
+    if (label.includes('显示坐标轴')) {
+        closeAllMenus();
+        axisVisible = !axisVisible;
+        const check = axisVisible ? '✓ ' : '';
+        const labelEl = item.querySelector('.menu-label');
+        if (labelEl) {
+            const svg = labelEl.querySelector('svg');
+            labelEl.textContent = '';
+            if (svg) labelEl.appendChild(svg);
+            labelEl.appendChild(document.createTextNode(check + '显示坐标轴'));
+        }
+        showToast(axisVisible ? '坐标轴已显示' : '坐标轴已隐藏');
+        return;
+    }
+    if (label.includes('全屏')) {
+        closeAllMenus();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen().catch(() => {});
+        }
+        return;
+    }
+
+    // --- SETTINGS MENU ---
+    // Nozzle sizes
+    const nozzleSizes = ['0.2 mm', '0.4 mm', '0.6 mm', '0.8 mm'];
+    const cleanLabel = label.replace('✓', '').trim();
+    if (nozzleSizes.includes(cleanLabel)) {
+        // Find sibling nozzle items in the same submenu
+        const parentSub = item.closest('.submenu');
+        if (parentSub) {
+            parentSub.querySelectorAll('.dropdown-item').forEach(si => {
+                si.classList.remove('selected-mark');
+                si.textContent = si.textContent.replace(' ✓', '').trim();
+            });
+            item.classList.add('selected-mark');
+            item.textContent = cleanLabel + ' ✓';
+        }
+        closeAllMenus();
+        showToast('已切换喷嘴: ' + cleanLabel);
+        return;
+    }
+
+    // Material brands
+    const brandParent = item.closest('.submenu-brands');
+    if (brandParent) {
+        brandParent.querySelectorAll('.dropdown-item').forEach(si => {
+            si.classList.remove('selected-mark');
+            si.textContent = si.textContent.replace(' ✓', '').trim();
+        });
+        item.classList.add('selected-mark');
+        item.textContent = cleanLabel + ' ✓';
+        closeAllMenus();
+        showToast('已切换耗材: ' + cleanLabel);
+        return;
+    }
+
+    if (label.includes('设为主挤出机')) {
+        closeAllMenus();
+        showToast('已设为主挤出机');
+        return;
+    }
+    if (label.includes('关闭挤出机')) {
+        closeAllMenus();
+        showToast('已关闭挤出机');
+        return;
+    }
+
+    // --- HELP MENU ---
+    if (label.includes('用户手册')) {
+        closeAllMenus();
+        showToast('用户手册');
+        return;
+    }
+    if (label.includes('检查更新')) {
+        closeAllMenus();
+        showToast('已是最新版本');
+        return;
+    }
+    if (label.includes('反馈问题')) {
+        closeAllMenus();
+        showToast('反馈问题');
+        return;
+    }
+    if (label.includes('参数显示设置')) {
+        closeAllMenus();
+        showToast('参数显示设置');
+        return;
+    }
+});
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+    const ctrl = e.ctrlKey || e.metaKey;
+
+    if (ctrl && !e.shiftKey && e.key === 'n') {
+        e.preventDefault();
+        showConfirm('新建项目', '是否新建项目? 当前未保存的更改将丢失');
+        return;
+    }
+    if (ctrl && !e.shiftKey && e.key === 'o') {
+        e.preventDefault();
+        triggerOpenFile();
+        return;
+    }
+    if (ctrl && !e.shiftKey && e.key === 's') {
+        e.preventDefault();
+        showToast('项目已保存');
+        return;
+    }
+    if (ctrl && e.key === 'z') {
+        e.preventDefault();
+        showToast('撤销');
+        return;
+    }
+    if (ctrl && e.key === 'y') {
+        e.preventDefault();
+        showToast('重做');
+        return;
+    }
+    if (ctrl && e.key === 'a') {
+        e.preventDefault();
+        showToast('已全选所有模型');
+        return;
+    }
+    if (e.key === 'Delete') {
+        e.preventDefault();
+        showToast('已删除所选模型');
+        return;
+    }
+    if (e.key === 'F11') {
+        e.preventDefault();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen().catch(() => {});
+        }
+        return;
+    }
+});
 
 // ============================================
 // INITIALIZATION
