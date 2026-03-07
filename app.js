@@ -6,14 +6,15 @@
 // ============================================
 // THREE.JS SCENE SETUP
 // ============================================
-const viewport = document.getElementById('viewport');
-const canvas = document.getElementById('three-canvas');
-
+let viewport, canvas;
 let scene, camera, renderer, controls;
 let buildPlate, model, gridHelper;
 let mousePos = { x: 0, y: 0 };
 
 function initThreeJS() {
+    viewport = document.getElementById('viewport');
+    canvas = document.getElementById('three-canvas');
+    if (!viewport || !canvas) { console.error('viewport or canvas not found'); return; }
     // Scene
     scene = new THREE.Scene();
 
@@ -78,49 +79,60 @@ function initThreeJS() {
 function createLighting() {
     const isDark = document.body.classList.contains('theme-dark');
 
-    // Ambient light (gray-700 / gray-300 tinted)
+    // Ambient light - softer, more nuanced
     const ambient = new THREE.AmbientLight(
-        isDark ? 0x333847 : 0x9CA1AE,
-        isDark ? 0.6 : 0.8
+        isDark ? 0x333847 : 0xB8BCC6,
+        isDark ? 0.5 : 0.6
     );
     scene.add(ambient);
 
-    // Main directional light (sun)
-    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.8 : 1.0);
+    // Main directional light (key light) - higher quality shadows
+    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.9 : 1.1);
     mainLight.position.set(300, 500, 400);
     mainLight.castShadow = true;
-    mainLight.shadow.mapSize.width = 2048;
-    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.mapSize.width = 4096;
+    mainLight.shadow.mapSize.height = 4096;
     mainLight.shadow.camera.near = 10;
     mainLight.shadow.camera.far = 1500;
     mainLight.shadow.camera.left = -500;
     mainLight.shadow.camera.right = 500;
     mainLight.shadow.camera.top = 500;
     mainLight.shadow.camera.bottom = -500;
-    mainLight.shadow.bias = -0.0005;
-    mainLight.shadow.radius = 4;
+    mainLight.shadow.bias = -0.0003;
+    mainLight.shadow.radius = 6;
+    mainLight.shadow.normalBias = 0.02;
     scene.add(mainLight);
 
-    // Fill light
+    // Fill light - cooler tone for contrast
     const fillLight = new THREE.DirectionalLight(
-        isDark ? 0x3344aa : 0x6688cc,
-        isDark ? 0.3 : 0.2
+        isDark ? 0x3344aa : 0x8899cc,
+        isDark ? 0.35 : 0.3
     );
     fillLight.position.set(-200, 200, -100);
     scene.add(fillLight);
 
-    // Rim light (brand accent)
-    const rimLight = new THREE.DirectionalLight(isDark ? 0x8B52DC : 0x7B2FD4, 0.15);
+    // Rim light (brand accent) - subtle purple edge
+    const rimLight = new THREE.DirectionalLight(isDark ? 0x8B52DC : 0x9B5EF0, 0.2);
     rimLight.position.set(-100, 300, 300);
     scene.add(rimLight);
 
-    // Bottom hemisphere for ground bounce (gray-800 / gray-300)
+    // Secondary rim from opposite side
+    const rimLight2 = new THREE.DirectionalLight(isDark ? 0x4466bb : 0x6688dd, 0.12);
+    rimLight2.position.set(200, 100, -300);
+    scene.add(rimLight2);
+
+    // Bottom hemisphere for ground bounce
     const hemiLight = new THREE.HemisphereLight(
-        isDark ? 0x232734 : 0x9CA1AE,
-        isDark ? 0x171A25 : 0x5F6577,
-        0.4
+        isDark ? 0x232734 : 0xC1C7CF,
+        isDark ? 0x171A25 : 0x808897,
+        isDark ? 0.4 : 0.5
     );
     scene.add(hemiLight);
+
+    // Soft top-down fill for even illumination
+    const topLight = new THREE.DirectionalLight(isDark ? 0x222233 : 0xDFE1E6, 0.15);
+    topLight.position.set(0, 600, 0);
+    scene.add(topLight);
 }
 
 function createBuildPlate() {
@@ -131,11 +143,11 @@ function createBuildPlate() {
     const plateD = 310;
     const plateH = 4;
 
-    // Metallic brushed build plate (gray-700 / gray-150)
+    // Metallic brushed build plate - enhanced material
     const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x333847 : 0xD1D4DB,
-        metalness: isDark ? 0.8 : 0.4,
-        roughness: isDark ? 0.4 : 0.5,
+        color: isDark ? 0x333847 : 0xCDD0D8,
+        metalness: isDark ? 0.8 : 0.5,
+        roughness: isDark ? 0.4 : 0.45,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
@@ -144,11 +156,11 @@ function createBuildPlate() {
     buildPlate.receiveShadow = true;
     scene.add(buildPlate);
 
-    // Edge highlight strip (gray-600 / gray-100)
+    // Edge highlight strip - polished metal look
     const edgeMat = new THREE.MeshStandardMaterial({
         color: isDark ? 0x464C5E : 0xE4E6EB,
         metalness: 0.9,
-        roughness: 0.2,
+        roughness: 0.15,
         emissive: isDark ? 0x232734 : 0x000000,
     });
 
@@ -174,14 +186,42 @@ function createBuildPlate() {
     rightEdge.position.x = plateW / 2 + 1;
     scene.add(rightEdge);
 
-    // Grid on plate surface
-    const gridSize = 400;
-    const gridDivisions = 20;
-    const gridColor = isDark ? 0x333847 : 0x9CA1AE;       // gray-700 / gray-300
-    const gridColorCenter = isDark ? 0x464C5E : 0xB8BCC6; // gray-600 / gray-200
-    gridHelper = new THREE.GridHelper(gridSize, gridDivisions, gridColorCenter, gridColor);
+    // Corner accents - small metallic caps
+    const cornerGeo = new THREE.CylinderGeometry(4, 4, plateH + 3, 16);
+    const cornerMat = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x555B6E : 0xB8BCC6,
+        metalness: 0.95,
+        roughness: 0.1,
+    });
+    const cornerPositions = [
+        [-plateW/2, -plateH/2, -plateD/2],
+        [plateW/2, -plateH/2, -plateD/2],
+        [-plateW/2, -plateH/2, plateD/2],
+        [plateW/2, -plateH/2, plateD/2],
+    ];
+    cornerPositions.forEach(pos => {
+        const corner = new THREE.Mesh(cornerGeo, cornerMat);
+        corner.position.set(pos[0], pos[1], pos[2]);
+        scene.add(corner);
+    });
+
+    // Fine grid (10mm scale) - denser subdivision
+    const fineGridSize = 400;
+    const fineGridDivisions = 40;
+    const fineGridColor = isDark ? 0x282D3A : 0xA4ABB8;
+    const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
+    fineGrid.position.y = 0.3;
+    fineGrid.material.opacity = isDark ? 0.12 : 0.15;
+    fineGrid.material.transparent = true;
+    scene.add(fineGrid);
+
+    // Coarse grid (50mm scale) - major divisions
+    const coarseGridDivisions = 8;
+    const coarseGridColor = isDark ? 0x464C5E : 0x808897;
+    const coarseGridCenter = isDark ? 0x555B6E : 0x9CA1AE;
+    gridHelper = new THREE.GridHelper(fineGridSize, coarseGridDivisions, coarseGridCenter, coarseGridColor);
     gridHelper.position.y = 0.5;
-    gridHelper.material.opacity = isDark ? 0.25 : 0.35;
+    gridHelper.material.opacity = isDark ? 0.3 : 0.35;
     gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
@@ -326,12 +366,12 @@ function createDemoModel() {
 function createEnvironment() {
     const isDark = document.body.classList.contains('theme-dark');
 
-    // Ground plane (infinite feel) gray-950 / gray-200
+    // Ground plane with subtle reflectivity
     const groundGeo = new THREE.PlaneGeometry(4000, 4000);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x0D0F17 : 0xB8BCC6,
-        metalness: 0,
-        roughness: 1,
+        color: isDark ? 0x0D0F17 : 0xC1C7CF,
+        metalness: isDark ? 0.1 : 0.15,
+        roughness: isDark ? 0.95 : 0.85,
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -339,13 +379,26 @@ function createEnvironment() {
     ground.receiveShadow = true;
     scene.add(ground);
 
+    // Gradient fade ring around build plate (environmental depth)
+    const fadeRingGeo = new THREE.RingGeometry(280, 800, 64);
+    const fadeRingMat = new THREE.MeshBasicMaterial({
+        color: isDark ? 0x0D0F17 : 0xB8BCC6,
+        transparent: true,
+        opacity: isDark ? 0.5 : 0.3,
+        depthWrite: false,
+    });
+    const fadeRing = new THREE.Mesh(fadeRingGeo, fadeRingMat);
+    fadeRing.rotation.x = -Math.PI / 2;
+    fadeRing.position.y = -2.5;
+    scene.add(fadeRing);
+
     // Volume box outline (faint print volume indicator)
-    const volumeH = 300; // Z height 600mm scaled
+    const volumeH = 300;
     const plateW = 410;
     const plateD = 310;
     const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(plateW, volumeH, plateD));
     const lineMat = new THREE.LineBasicMaterial({
-        color: isDark ? 0x464C5E : 0x9CA1AE, // gray-600 / gray-300
+        color: isDark ? 0x464C5E : 0x9CA1AE,
         transparent: true,
         opacity: isDark ? 0.15 : 0.2,
     });
@@ -353,8 +406,33 @@ function createEnvironment() {
     wireframe.position.y = volumeH / 2;
     scene.add(wireframe);
 
-    // Axis indicator lines at origin
-    const axisLen = 40;
+    // Volume height markers (every 50mm scaled = every 50 units)
+    const markerMat = new THREE.LineBasicMaterial({
+        color: isDark ? 0x3A3F50 : 0xA4ABB8,
+        transparent: true,
+        opacity: isDark ? 0.12 : 0.18,
+    });
+    for (let h = 50; h < volumeH; h += 50) {
+        const pts = [
+            new THREE.Vector3(-plateW/2, h, plateD/2),
+            new THREE.Vector3(plateW/2, h, plateD/2),
+        ];
+        const markerGeo = new THREE.BufferGeometry().setFromPoints(pts);
+        const marker = new THREE.Line(markerGeo, markerMat);
+        scene.add(marker);
+
+        // Side marker
+        const sidePts = [
+            new THREE.Vector3(plateW/2, h, -plateD/2),
+            new THREE.Vector3(plateW/2, h, plateD/2),
+        ];
+        const sideGeo = new THREE.BufferGeometry().setFromPoints(sidePts);
+        const sideMarker = new THREE.Line(sideGeo, markerMat);
+        scene.add(sideMarker);
+    }
+
+    // Axis indicator lines at origin - thicker visual
+    const axisLen = 50;
 
     // X axis (red)
     const xLine = createAxisLine(
@@ -379,6 +457,28 @@ function createEnvironment() {
         0x4488ff
     );
     scene.add(zLine);
+
+    // Axis labels using canvas textures
+    const axisLabels = [
+        { text: 'X', color: '#ff4444', pos: [axisLen + 8, 2, 0] },
+        { text: 'Y', color: '#44ff44', pos: [0, axisLen + 8, 0] },
+        { text: 'Z', color: '#4488ff', pos: [0, 2, axisLen + 8] },
+    ];
+    axisLabels.forEach(({ text, color, pos }) => {
+        const c = document.createElement('canvas');
+        c.width = 32; c.height = 32;
+        const ctx = c.getContext('2d');
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, 16, 16);
+        const tex = new THREE.CanvasTexture(c);
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.6, depthTest: false }));
+        sprite.position.set(pos[0], pos[1], pos[2]);
+        sprite.scale.set(12, 12, 1);
+        scene.add(sprite);
+    });
 }
 
 function createAxisLine(start, end, color) {
@@ -395,6 +495,12 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
+
+    // Sync ViewCube with camera orientation
+    if (window._viewCube && window._viewCube.syncWithCamera) {
+        window._viewCube.syncWithCamera();
+        window._viewCube.render();
+    }
 }
 
 // Resize handler
@@ -476,7 +582,7 @@ const panelToggle = document.getElementById('panelToggle');
 const panelRight = document.getElementById('panelRight');
 let panelCollapsed = false;
 
-panelToggle.addEventListener('click', () => {
+if (panelToggle) panelToggle.addEventListener('click', () => {
     panelCollapsed = !panelCollapsed;
     panelRight.classList.toggle('collapsed', panelCollapsed);
 
@@ -967,17 +1073,217 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // ============================================
-// FLOATING TOOLBAR
+// FLOATING TOOLBAR + TOOL PANELS
 // ============================================
-document.querySelectorAll('.ftool-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.ftool-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
+(function() {
+    const toolPanel = document.getElementById('toolPanel');
+    const toolPanelTitle = document.getElementById('toolPanelTitle');
+    const toolPanelShortcut = document.getElementById('toolPanelShortcut');
+    const toolPanelBody = document.getElementById('toolPanelBody');
+    let currentTool = 'select';
+
+    // Tools that have panels
+    const toolPanelDefs = {
+        move: {
+            title: '移动',
+            shortcut: 'T',
+            render() {
+                return `
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-x">X</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="0.1"><span class="tp-input-unit">mm</span></div>
+                    </div>
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-y">Y</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="0.1"><span class="tp-input-unit">mm</span></div>
+                    </div>
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-z">Z</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="0.1"><span class="tp-input-unit">mm</span></div>
+                    </div>
+                    <label class="tp-checkbox-row"><input type="checkbox"> 锁定模型</label>
+                    <label class="tp-checkbox-row"><input type="checkbox" checked> Drop Down Model</label>
+                `;
+            }
+        },
+        scale: {
+            title: '缩放',
+            shortcut: 'S',
+            render() {
+                return `
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-x">X</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="165.3597" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="100" step="1"><span class="tp-input-unit">%</span></div>
+                    </div>
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-y">Y</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="41.4252" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="100" step="1"><span class="tp-input-unit">%</span></div>
+                    </div>
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-z">Z</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="177.4229" step="0.1"><span class="tp-input-unit">mm</span></div>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="100" step="1"><span class="tp-input-unit">%</span></div>
+                    </div>
+                    <div class="tp-btn-row">
+                        <button class="tp-btn" title="重置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg></button>
+                    </div>
+                    <label class="tp-checkbox-row"><input type="checkbox"> 等距缩放（Snap Scaling）</label>
+                    <label class="tp-checkbox-row"><input type="checkbox" checked> 等比例缩放</label>
+                `;
+            }
+        },
+        rotate: {
+            title: '旋转',
+            shortcut: 'R',
+            render() {
+                return `
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-x">X</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="1"><span class="tp-input-unit">°</span></div>
+                    </div>
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-y">Y</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="1"><span class="tp-input-unit">°</span></div>
+                    </div>
+                    <div class="tp-row">
+                        <span class="tp-axis-label axis-z">Z</span>
+                        <div class="tp-input-wrap"><input class="tp-input" type="number" value="0" step="1"><span class="tp-input-unit">°</span></div>
+                    </div>
+                    <label class="tp-checkbox-row"><input type="checkbox" checked> 等距旋转（Snap Rotation）</label>
+                    <div class="tp-btn-row">
+                        <button class="tp-btn" title="重置旋转"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 019-3"/><path d="M13 8a5 5 0 01-9 3"/><path d="M12 5h2V3"/></svg> 重置</button>
+                        <button class="tp-btn" title="自动摆放"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13h12"/><path d="M5 13V7l3-4 3 4v6"/></svg> 自动摆放</button>
+                        <button class="tp-btn" title="放平到底面"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="10" width="12" height="4"/><path d="M5 10V6h6v4"/></svg> 放平</button>
+                    </div>
+                `;
+            }
+        },
+        mirror: {
+            title: '镜像',
+            shortcut: 'M',
+            render() {
+                return `
+                    <div class="tp-mirror-grid">
+                        <button class="tp-mirror-btn mirror-x"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4v8z"/></svg> X+</button>
+                        <button class="tp-mirror-btn mirror-x"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8l-4-4v8z"/></svg> X-</button>
+                        <button class="tp-mirror-btn mirror-y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 4l-4 4h8z"/></svg> Y+</button>
+                        <button class="tp-mirror-btn mirror-y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12l-4-4h8z"/></svg> Y-</button>
+                        <button class="tp-mirror-btn mirror-z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4v8z"/></svg> Z+</button>
+                        <button class="tp-mirror-btn mirror-z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8l-4-4v8z"/></svg> Z-</button>
+                    </div>
+                `;
+            }
+        },
+        permodel: {
+            title: '单独设置',
+            shortcut: '',
+            render() {
+                return `
+                    <div class="tp-mesh-grid">
+                        <button class="tp-mesh-btn active" title="正常模式"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14"/></svg></button>
+                        <button class="tp-mesh-btn" title="填充模式"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14"/><path d="M3 7h14M3 11h14M3 15h14M7 3v14M11 3v14"/></svg></button>
+                        <button class="tp-mesh-btn" title="线框模式"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" stroke-dasharray="2 2"/><path d="M3 10h14M10 3v14" stroke-dasharray="2 2"/></svg></button>
+                        <button class="tp-mesh-btn" title="自定义"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="3"/><circle cx="13" cy="7" r="3"/><circle cx="7" cy="13" r="3"/><circle cx="13" cy="13" r="3"/></svg></button>
+                    </div>
+                    <p class="tp-desc">网格类型: 正常模式</p>
+                    <button class="tp-btn">选择设置</button>
+                `;
+            }
+        },
+        supportblocker: {
+            title: '支撑拦截器',
+            shortcut: 'E',
+            render() {
+                return `
+                    <p class="tp-desc">在模型表面绘制区域以阻止生成支撑</p>
+                    <label class="tp-checkbox-row"><input type="checkbox"> 启用支撑拦截</label>
+                `;
+            }
+        }
+    };
+
+    const floatingToolbar = document.getElementById('floatingToolbar');
+
+    function showToolPanel(tool) {
+        const def = toolPanelDefs[tool];
+        if (!def) { toolPanel.style.display = 'none'; floatingToolbar.classList.remove('panel-open'); return; }
+        toolPanelTitle.textContent = def.title;
+        toolPanelShortcut.textContent = def.shortcut;
+        toolPanelShortcut.style.display = def.shortcut ? '' : 'none';
+        toolPanelBody.innerHTML = def.render();
+        toolPanel.style.display = '';
+        floatingToolbar.classList.add('panel-open');
+        toolPanel.style.animation = 'none';
+        toolPanel.offsetHeight; // reflow
+        toolPanel.style.animation = '';
+
+        // Per-model mesh button toggling
+        if (tool === 'permodel') {
+            const meshBtns = toolPanelBody.querySelectorAll('.tp-mesh-btn');
+            const meshLabels = ['正常模式', '填充模式', '线框模式', '自定义模式'];
+            meshBtns.forEach((btn, i) => {
+                btn.addEventListener('click', () => {
+                    meshBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    toolPanelBody.querySelector('.tp-desc').textContent = '网格类型: ' + meshLabels[i];
+                });
+            });
+        }
+    }
+
+    function hideToolPanel() {
+        toolPanel.style.display = 'none';
+        floatingToolbar.classList.remove('panel-open');
+    }
+
+    // Tool button clicks
+    document.querySelectorAll('#floatingToolbar .ftool-btn:not(.ftool-extruder)').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tool = this.dataset.tool;
+            // Toggle: clicking same tool again closes the panel
+            if (tool === currentTool && tool !== 'select') {
+                // Deselect to select mode
+                document.querySelectorAll('#floatingToolbar .ftool-btn:not(.ftool-extruder)').forEach(b => b.classList.remove('active'));
+                document.querySelector('.ftool-btn[data-tool="select"]').classList.add('active');
+                currentTool = 'select';
+                hideToolPanel();
+                return;
+            }
+            document.querySelectorAll('#floatingToolbar .ftool-btn:not(.ftool-extruder)').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentTool = tool;
+            if (tool === 'select') {
+                hideToolPanel();
+            } else {
+                showToolPanel(tool);
+            }
+        });
     });
-});
+
+    // Extruder button clicks
+    document.querySelectorAll('.ftool-extruder').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.ftool-extruder').forEach(b => b.classList.remove('ftool-extruder-active'));
+            this.classList.add('ftool-extruder-active');
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        const keyMap = { t: 'move', s: 'scale', r: 'rotate', m: 'mirror', e: 'supportblocker' };
+        const tool = keyMap[e.key.toLowerCase()];
+        if (tool) {
+            const btn = document.querySelector('.ftool-btn[data-tool="' + tool + '"]');
+            if (btn) btn.click();
+        }
+    });
+})();
 
 // --- Mouse position tracking for potential ray cast ---
-viewport.addEventListener('mousemove', (e) => {
+if (viewport) viewport.addEventListener('mousemove', (e) => {
     const rect = viewport.getBoundingClientRect();
     mousePos.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     mousePos.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -985,8 +1291,246 @@ viewport.addEventListener('mousemove', (e) => {
 
 
 // ============================================
+// SVG VIEWCUBE - 3D Orientation Navigator
+// ============================================
+
+window._viewCube = (function() {
+    const svg = document.getElementById('viewCubeSVG');
+    if (!svg) return {};
+
+    const SIZE = 120;
+    const CENTER = SIZE / 2;
+    const CUBE_SIZE = 32; // half-size of cube
+
+    // Cube vertices in 3D (centered at origin)
+    const vertices = [
+        [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], // back face
+        [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1], // front face
+    ];
+
+    // Faces: [vertex indices], label, viewName
+    const faces = [
+        { verts: [4, 5, 6, 7], label: '前', view: 'front' },
+        { verts: [1, 0, 3, 2], label: '后', view: 'back' },
+        { verts: [5, 1, 2, 6], label: '右', view: 'right' },
+        { verts: [0, 4, 7, 3], label: '左', view: 'left' },
+        { verts: [7, 6, 2, 3], label: '上', view: 'top' },
+        { verts: [0, 1, 5, 4], label: '下', view: 'bottom' },
+    ];
+
+    // Current rotation angles (synced with camera)
+    let rotX = -0.5; // pitch
+    let rotY = 0.6;  // yaw
+
+    let hoveredFace = null;
+    let elements = [];
+
+    function project(x, y, z) {
+        // Apply Y rotation (yaw)
+        const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+        let x1 = x * cosY + z * sinY;
+        let z1 = -x * sinY + z * cosY;
+        // Apply X rotation (pitch)
+        const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+        let y1 = y * cosX - z1 * sinX;
+        let z2 = y * sinX + z1 * cosX;
+
+        // Simple perspective
+        const perspective = 4;
+        const scale = perspective / (perspective + z2 * 0.3);
+
+        return {
+            x: CENTER + x1 * CUBE_SIZE * scale,
+            y: CENTER - y1 * CUBE_SIZE * scale,
+            z: z2,
+        };
+    }
+
+    function getFaceNormalZ(faceIdx) {
+        const f = faces[faceIdx];
+        const v = f.verts.map(i => {
+            const [vx, vy, vz] = vertices[i];
+            return project(vx, vy, vz);
+        });
+        // Cross product for face normal z-component
+        const ax = v[1].x - v[0].x, ay = v[1].y - v[0].y;
+        const bx = v[3].x - v[0].x, by = v[3].y - v[0].y;
+        return ax * by - ay * bx;
+    }
+
+    function render() {
+        const isDark = document.body.classList.contains('theme-dark');
+
+        // Colors
+        const faceColor = isDark ? '#272835' : '#F2F3F5';
+        const faceStroke = isDark ? '#464C5E' : '#C1C7CF';
+        const hoverColor = isDark ? '#3A225B' : '#EBDCFF';
+        const hoverStroke = isDark ? '#8B52DC' : '#7B2FD4';
+        const textColor = isDark ? '#A4ABB8' : '#666D80';
+        const hoverTextColor = isDark ? '#DBBFF8' : '#7B2FD4';
+
+        // Sort faces by average z (back to front)
+        const faceOrder = faces.map((f, i) => {
+            const avgZ = f.verts.reduce((sum, vi) => {
+                const [vx, vy, vz] = vertices[vi];
+                return sum + project(vx, vy, vz).z;
+            }, 0) / 4;
+            return { index: i, avgZ, normalZ: getFaceNormalZ(i) };
+        }).filter(f => f.normalZ > 0) // only front-facing
+          .sort((a, b) => a.avgZ - b.avgZ);
+
+        let html = '';
+        elements = [];
+
+        // Draw edges first (back edges)
+        const edgePairs = [
+            [0,1],[1,2],[2,3],[3,0], // back
+            [4,5],[5,6],[6,7],[7,4], // front
+            [0,4],[1,5],[2,6],[3,7], // connecting
+        ];
+        edgePairs.forEach(([a,b]) => {
+            const [ax,ay,az] = vertices[a];
+            const [bx,by,bz] = vertices[b];
+            const pa = project(ax, ay, az);
+            const pb = project(bx, by, bz);
+            html += `<line x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" stroke="${faceStroke}" stroke-width="0.5" opacity="0.3"/>`;
+        });
+
+        // Draw visible faces
+        faceOrder.forEach(({ index }) => {
+            const f = faces[index];
+            const projected = f.verts.map(vi => {
+                const [vx, vy, vz] = vertices[vi];
+                return project(vx, vy, vz);
+            });
+
+            const pathD = projected.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z';
+            const isHovered = hoveredFace === index;
+            const fill = isHovered ? hoverColor : faceColor;
+            const stroke = isHovered ? hoverStroke : faceStroke;
+            const txtColor = isHovered ? hoverTextColor : textColor;
+
+            // Face polygon
+            html += `<path d="${pathD}" fill="${fill}" stroke="${stroke}" stroke-width="${isHovered ? 1.5 : 1}" 
+                      data-face="${index}" style="cursor:pointer;" opacity="0.92"/>`;
+
+            // Label centered on face
+            const cx = projected.reduce((s, p) => s + p.x, 0) / 4;
+            const cy = projected.reduce((s, p) => s + p.y, 0) / 4;
+            html += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" text-anchor="middle" dominant-baseline="central" 
+                      fill="${txtColor}" font-size="11" font-weight="${isHovered ? '600' : '500'}" 
+                      font-family="-apple-system, sans-serif" pointer-events="none">${f.label}</text>`;
+
+            elements.push({ index, path: pathD, projected });
+        });
+
+        svg.innerHTML = html;
+    }
+
+    // Sync ViewCube rotation with Three.js camera
+    function syncWithCamera() {
+        if (!camera || !controls) return;
+        const target = controls.target;
+        const pos = camera.position;
+        const dx = pos.x - target.x;
+        const dy = pos.y - target.y;
+        const dz = pos.z - target.z;
+        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+        rotY = Math.atan2(dx, dz);
+        rotX = -Math.asin(dy / dist);
+    }
+
+    // Camera view presets
+    const viewPresets = {
+        front:  { pos: [0, 50, 600], target: [0, 50, 0] },
+        back:   { pos: [0, 50, -600], target: [0, 50, 0] },
+        right:  { pos: [600, 50, 0], target: [0, 50, 0] },
+        left:   { pos: [-600, 50, 0], target: [0, 50, 0] },
+        top:    { pos: [0, 600, 0.01], target: [0, 0, 0] },
+        bottom: { pos: [0, -600, 0.01], target: [0, 0, 0] },
+    };
+
+    function setView(viewName) {
+        const preset = viewPresets[viewName];
+        if (!preset || !camera || !controls) return;
+
+        // Animate camera to target position
+        const startPos = camera.position.clone();
+        const startTarget = controls.target.clone();
+        const endPos = new THREE.Vector3(...preset.pos);
+        const endTarget = new THREE.Vector3(...preset.target);
+        const duration = 400;
+        const startTime = performance.now();
+
+        function animateView(time) {
+            const elapsed = time - startTime;
+            const t = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const ease = 1 - Math.pow(1 - t, 3);
+
+            camera.position.lerpVectors(startPos, endPos, ease);
+            controls.target.lerpVectors(startTarget, endTarget, ease);
+            controls.update();
+
+            if (t < 1) {
+                requestAnimationFrame(animateView);
+            }
+        }
+        requestAnimationFrame(animateView);
+    }
+
+    // Mouse events
+    const container = document.getElementById('viewCubeContainer');
+    if (container) {
+        container.addEventListener('mousemove', (e) => {
+            const rect = svg.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) * (SIZE / rect.width);
+            const my = (e.clientY - rect.top) * (SIZE / rect.height);
+
+            hoveredFace = null;
+            // Check faces in reverse (top-most first)
+            for (let i = elements.length - 1; i >= 0; i--) {
+                if (pointInPolygon(mx, my, elements[i].projected)) {
+                    hoveredFace = elements[i].index;
+                    break;
+                }
+            }
+            render();
+        });
+
+        container.addEventListener('mouseleave', () => {
+            hoveredFace = null;
+            render();
+        });
+
+        container.addEventListener('click', () => {
+            if (hoveredFace !== null) {
+                setView(faces[hoveredFace].view);
+            }
+        });
+    }
+
+    function pointInPolygon(px, py, poly) {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            const xi = poly[i].x, yi = poly[i].y;
+            const xj = poly[j].x, yj = poly[j].y;
+            if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    return { render, syncWithCamera };
+})();
+
+// ============================================
 // INITIALIZATION
 // ============================================
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', () => { initThreeJS(); });
+} else {
     initThreeJS();
-});
+}

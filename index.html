@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 </head>
-<body class="theme-dark">
+<body class="theme-light">
 
     <!-- Top Menu Bar -->
     <header class="top-bar">
@@ -252,26 +252,30 @@
             <!-- Floating Toolbar (moved from left sidebar) -->
             <div class="floating-toolbar" id="floatingToolbar">
                 <button class="ftool-btn active" title="选择" data-tool="select"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2.5l11 7-5.5 1.5-2.5 5.5z"/></svg></button>
-                <button class="ftool-btn" title="移动" data-tool="move"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2v16M2 10h16M10 2l2.5 2.5M10 2l-2.5 2.5M10 18l2.5-2.5M10 18l-2.5-2.5M2 10l2.5-2.5M2 10l2.5 2.5M18 10l-2.5-2.5M18 10l-2.5 2.5"/></svg></button>
-                <button class="ftool-btn" title="缩放" data-tool="scale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="6" height="6"/><rect x="12" y="12" width="6" height="6"/><path d="M8 5.5h3v3M12 14.5h-3v-3"/></svg></button>
-                <button class="ftool-btn" title="旋转" data-tool="rotate"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 10a6.5 6.5 0 0111.3-4.3"/><path d="M16.5 10a6.5 6.5 0 01-11.3 4.3"/><path d="M14.8 5.7l.8-3.2h2.4"/></svg></button>
+                <button class="ftool-btn" title="移动 (T)" data-tool="move"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2v16M2 10h16M10 2l2.5 2.5M10 2l-2.5 2.5M10 18l2.5-2.5M10 18l-2.5-2.5M2 10l2.5-2.5M2 10l2.5 2.5M18 10l-2.5-2.5M18 10l-2.5 2.5"/></svg></button>
+                <button class="ftool-btn" title="缩放 (S)" data-tool="scale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="6" height="6"/><rect x="12" y="12" width="6" height="6"/><path d="M8 5.5h3v3M12 14.5h-3v-3"/></svg></button>
+                <button class="ftool-btn" title="旋转 (R)" data-tool="rotate"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 10a6.5 6.5 0 0111.3-4.3"/><path d="M16.5 10a6.5 6.5 0 01-11.3 4.3"/><path d="M14.8 5.7l.8-3.2h2.4"/></svg></button>
+                <button class="ftool-btn" title="镜像 (M)" data-tool="mirror"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2v16" stroke-dasharray="2 2"/><path d="M3 6l4 4-4 4z" fill="currentColor" opacity="0.3"/><path d="M17 6l-4 4 4 4z" fill="currentColor" opacity="0.3"/></svg></button>
                 <div class="ftool-divider"></div>
-                <button class="ftool-btn" title="添加" data-tool="add"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14"/><path d="M10 7v6M7 10h6"/></svg></button>
-                <button class="ftool-btn" title="支撑" data-tool="support"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 16V9l5-5 5 5v7"/><path d="M5 16h10"/><path d="M8 12v4M12 12v4"/></svg></button>
-                <button class="ftool-btn" title="切割" data-tool="cut"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10h16"/><path d="M6 3l-2 14M14 3l2 14"/></svg></button>
-                <button class="ftool-btn" title="测量" data-tool="measure"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17L17 3"/><path d="M3 17h4v-4"/><path d="M17 3h-4v4"/></svg></button>
+                <button class="ftool-btn" title="单独设置" data-tool="permodel"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="7" height="7"/><rect x="11" y="2" width="7" height="7"/><rect x="2" y="11" width="7" height="7"/><rect x="11" y="11" width="7" height="7"/></svg></button>
+                <button class="ftool-btn" title="支撑拦截器 (E)" data-tool="supportblocker"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 16V9l5-5 5 5v7"/><path d="M5 16h10"/><path d="M7 10l6 6M13 10l-6 6"/></svg></button>
+                <div class="ftool-divider"></div>
+                <button class="ftool-btn ftool-extruder ftool-extruder-active" title="挤出机 1" data-extruder="1"><span class="ftool-extruder-num">1</span></button>
+                <button class="ftool-btn ftool-extruder" title="挤出机 2" data-extruder="2"><span class="ftool-extruder-num">2</span></button>
             </div>
 
-            <!-- Viewport overlay info -->
-            <div class="viewport-info">
-                <div class="view-cube" id="viewCube">
-                    <div class="cube-face front">前</div>
-                    <div class="cube-face back">后</div>
-                    <div class="cube-face right">右</div>
-                    <div class="cube-face left">左</div>
-                    <div class="cube-face top">上</div>
-                    <div class="cube-face bottom">下</div>
+            <!-- Tool Panels (appear right of toolbar) -->
+            <div class="tool-panel" id="toolPanel" style="display:none;">
+                <div class="tool-panel-header">
+                    <span class="tool-panel-title" id="toolPanelTitle">移动</span>
+                    <span class="tool-panel-shortcut" id="toolPanelShortcut">T</span>
                 </div>
+                <div class="tool-panel-body" id="toolPanelBody"></div>
+            </div>
+
+            <!-- SVG ViewCube Orientation Widget -->
+            <div class="viewcube-container" id="viewCubeContainer">
+                <svg id="viewCubeSVG" width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"></svg>
             </div>
 
             <!-- Model info overlay -->
@@ -2293,7 +2297,8 @@ G28 X Y ; Home X Y</textarea>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=20260306"></script>
+    <script>if(typeof initThreeJS==='function'&&typeof scene==='undefined')initThreeJS();</script>
     
     <!-- Custom Material Styles -->
     <style>

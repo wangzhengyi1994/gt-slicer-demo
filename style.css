@@ -1570,6 +1570,10 @@ html, body {
     pointer-events: none;
     z-index: 60;
 }
+/* Hide tooltip when tool panel is visible */
+.floating-toolbar.panel-open .ftool-btn:hover::after {
+    display: none;
+}
 .ftool-divider {
     height: 1px;
     background: var(--border-color);
@@ -1578,6 +1582,235 @@ html, body {
 
 /* Hide old toolbar-left (now replaced) */
 .toolbar-left { display: none; }
+
+/* Extruder Buttons */
+.ftool-extruder {
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    margin: 2px auto;
+    border: 2px solid var(--border-color) !important;
+    position: relative;
+}
+.ftool-extruder-num {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+.ftool-extruder-active {
+    border-color: var(--brand-orange) !important;
+    color: var(--brand-orange) !important;
+    background: var(--brand-orange-dim) !important;
+}
+
+/* ============================================
+   TOOL PANEL (appears right of floating toolbar)
+   ============================================ */
+.tool-panel {
+    position: absolute;
+    left: 54px;
+    top: 12px;
+    z-index: 49;
+    width: 240px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-panel);
+    animation: toolPanelIn 0.18s ease-out;
+}
+@keyframes toolPanelIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.tool-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+.tool-panel-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.tool-panel-shortcut {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 1px 6px;
+    font-family: var(--font-mono);
+}
+.tool-panel-body {
+    padding: 12px;
+}
+
+/* Tool panel form rows */
+.tp-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.tp-row:last-child { margin-bottom: 0; }
+.tp-axis-label {
+    font-size: 12px;
+    font-weight: 700;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.tp-axis-label.axis-x { color: #E74C3C; }
+.tp-axis-label.axis-y { color: #2ECC71; }
+.tp-axis-label.axis-z { color: #3498DB; }
+.tp-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    transition: border-color var(--transition);
+}
+.tp-input-wrap:hover {
+    border-color: var(--border-hover);
+}
+.tp-input-wrap:focus-within {
+    border-color: var(--brand-orange);
+    background: var(--bg-input-focus);
+}
+.tp-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 12px;
+    padding: 5px 6px;
+    font-family: var(--font-mono);
+    width: 0;
+    min-width: 0;
+}
+.tp-input-unit {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding-right: 6px;
+    flex-shrink: 0;
+}
+.tp-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.tp-checkbox-row input[type="checkbox"] {
+    accent-color: var(--brand-orange);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+.tp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 10px;
+    font-size: 11px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.tp-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+}
+.tp-btn svg {
+    width: 14px;
+    height: 14px;
+}
+.tp-btn-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+.tp-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 10px 0;
+}
+.tp-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+/* Mirror direction buttons */
+.tp-mirror-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.tp-mirror-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.tp-mirror-btn:hover {
+    background: var(--bg-card-hover);
+}
+.tp-mirror-btn.mirror-x { border-color: #E74C3C; color: #E74C3C; }
+.tp-mirror-btn.mirror-y { border-color: #2ECC71; color: #2ECC71; }
+.tp-mirror-btn.mirror-z { border-color: #3498DB; color: #3498DB; }
+.tp-mirror-btn.mirror-x:hover { background: rgba(231,76,60,0.1); }
+.tp-mirror-btn.mirror-y:hover { background: rgba(46,204,113,0.1); }
+.tp-mirror-btn.mirror-z:hover { background: rgba(52,152,219,0.1); }
+.tp-mirror-btn svg { width: 14px; height: 14px; }
+
+/* Per-model mesh type icons */
+.tp-mesh-grid {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+.tp-mesh-btn {
+    width: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.tp-mesh-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+.tp-mesh-btn.active {
+    border-color: var(--brand-orange);
+    color: var(--brand-orange);
+    background: var(--brand-orange-dim);
+}
+.tp-mesh-btn svg { width: 18px; height: 18px; }
 
 /* ============================================
    3D VIEWPORT
@@ -1596,34 +1829,24 @@ html, body {
 }
 
 /* View Cube */
-.viewport-info {
+/* SVG ViewCube Orientation Widget */
+.viewcube-container {
     position: absolute;
-    top: 16px;
-    right: calc(var(--panel-width) + 24px);
-    z-index: 40;
-}
-
-.view-cube {
-    width: 60px;
-    height: 60px;
-    position: relative;
-    perspective: 200px;
+    top: 12px;
+    right: 12px;
+    z-index: 50;
+    width: 120px;
+    height: 120px;
     cursor: pointer;
+    user-select: none;
 }
 
-.cube-face {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
-    background: var(--bg-panel);
-    /* backdrop-filter removed */
-    opacity: 0;
+.viewcube-container svg {
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+
+.theme-dark .viewcube-container svg {
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
 }
 
 /* Model Info Overlay */
