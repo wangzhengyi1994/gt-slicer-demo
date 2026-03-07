@@ -283,21 +283,23 @@
             <!-- SVG ViewCube Orientation Widget -->
             <div class="viewcube-container" id="viewCubeContainer">
                 <svg id="viewCubeSVG" width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"></svg>
+                <button class="viewcube-gear-btn" id="viewCubeGearBtn" title="视图设置">⚙</button>
             </div>
 
-            <!-- Model info overlay -->
-            <div class="model-info-overlay" id="modelInfo" style="display:none;">
-                <div class="model-info-row">
-                    <span class="model-info-label">尺寸</span>
-                    <span class="model-info-value" id="modelSize">120 × 80 × 65 mm</span>
+            <!-- Model info card (bottom-right) -->
+            <div class="model-info-card" id="modelInfoCard" style="display:none;">
+                <div class="model-info-card-name" id="modelInfoName">实体1</div>
+                <div class="model-info-card-row">
+                    <span class="model-info-card-label">大小</span>
+                    <span class="model-info-card-value" id="modelInfoSize">-- × -- × -- mm</span>
                 </div>
-                <div class="model-info-row">
-                    <span class="model-info-label">体积</span>
-                    <span class="model-info-value" id="modelVolume">245.8 cm³</span>
+                <div class="model-info-card-row">
+                    <span class="model-info-card-label">体积</span>
+                    <span class="model-info-card-value" id="modelInfoVolume">-- mm³</span>
                 </div>
-                <div class="model-info-row">
-                    <span class="model-info-label">三角面</span>
-                    <span class="model-info-value" id="modelFaces">12,840</span>
+                <div class="model-info-card-row">
+                    <span class="model-info-card-label">三角形</span>
+                    <span class="model-info-card-value" id="modelInfoTriangles">--</span>
                 </div>
             </div>
         </div>

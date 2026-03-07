@@ -72,8 +72,9 @@ function initThreeJS() {
     createDemoModel();
     createEnvironment();
 
-    // Show model info
-    document.getElementById('modelInfo').style.display = 'flex';
+    // Show model info card
+    const infoCard = document.getElementById('modelInfoCard');
+    if (infoCard) infoCard.style.display = 'block';
 
     // Compute initial bounding box for scale baseline
     const box = new THREE.Box3().setFromObject(model);
@@ -100,6 +101,33 @@ function initThreeJS() {
         if (typeof syncPanelFromModel === 'function') syncPanelFromModel();
     });
 
+    // Gizmo dashed extension lines (translate mode only)
+    window._gizmoDashLines = [];
+    const dashConfigs = [
+        { color: 0xff0000, dir: new THREE.Vector3(1, 0, 0) }, // X red
+        { color: 0x00cc44, dir: new THREE.Vector3(0, 1, 0) }, // Y green
+        { color: 0x0066ff, dir: new THREE.Vector3(0, 0, 1) }, // Z blue
+    ];
+    dashConfigs.forEach(({ color, dir }) => {
+        const dashMat = new THREE.LineDashedMaterial({
+            color: color,
+            dashSize: 5,
+            gapSize: 3,
+            transparent: true,
+            opacity: 0.3,
+        });
+        const pts = [
+            dir.clone().multiplyScalar(-500),
+            dir.clone().multiplyScalar(500),
+        ];
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const line = new THREE.Line(geo, dashMat);
+        line.computeLineDistances();
+        line.visible = false;
+        scene.add(line);
+        window._gizmoDashLines.push(line);
+    });
+
     // Start render loop
     animate();
 }
@@ -109,13 +137,13 @@ function createLighting() {
 
     // Ambient light - softer, more nuanced
     const ambient = new THREE.AmbientLight(
-        isDark ? 0x333847 : 0xB8BCC6,
-        isDark ? 0.5 : 0.6
+        isDark ? 0x333847 : 0x8890A0,
+        isDark ? 0.5 : 0.45
     );
     scene.add(ambient);
 
     // Main directional light (key light) - higher quality shadows
-    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.9 : 1.1);
+    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.9 : 0.85);
     mainLight.position.set(300, 500, 400);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 4096;
@@ -171,11 +199,11 @@ function createBuildPlate() {
     const plateD = 310;
     const plateH = 4;
 
-    // Metallic brushed build plate - enhanced material
-    const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x333847 : 0xCDD0D8,
-        metalness: isDark ? 0.8 : 0.5,
-        roughness: isDark ? 0.4 : 0.45,
+    // Dark PEI texture - deep charcoal, use MeshLambertMaterial to resist over-lighting
+    const plateMaterial = new THREE.MeshLambertMaterial({
+        color: 0x1A1D25,
+        emissive: 0x0A0C12,
+        emissiveIntensity: 1.0,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
@@ -184,74 +212,71 @@ function createBuildPlate() {
     buildPlate.receiveShadow = true;
     scene.add(buildPlate);
 
-    // Edge highlight strip - polished metal look
-    const edgeMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x464C5E : 0xE4E6EB,
-        metalness: 0.9,
-        roughness: 0.15,
-        emissive: isDark ? 0x232734 : 0x000000,
+    // Dark border frame (slightly darker than plate)
+    const borderMat = new THREE.MeshStandardMaterial({
+        color: 0x101218,
+        metalness: 0.1,
+        roughness: 0.9,
     });
+    const borderThickness = 6;
+    const borderH = plateH + 1;
 
-    // Front edge
-    const edgeGeo = new THREE.BoxGeometry(plateW + 4, plateH + 2, 2);
-    const frontEdge = new THREE.Mesh(edgeGeo, edgeMat);
-    frontEdge.position.set(0, -plateH / 2, plateD / 2 + 1);
-    scene.add(frontEdge);
+    // Front border
+    const frontBorderGeo = new THREE.BoxGeometry(plateW + borderThickness * 2, borderH, borderThickness);
+    const frontBorder = new THREE.Mesh(frontBorderGeo, borderMat);
+    frontBorder.position.set(0, -plateH / 2, plateD / 2 + borderThickness / 2);
+    scene.add(frontBorder);
 
-    // Back edge
-    const backEdge = frontEdge.clone();
-    backEdge.position.z = -plateD / 2 - 1;
-    scene.add(backEdge);
+    // Back border
+    const backBorder = frontBorder.clone();
+    backBorder.position.z = -plateD / 2 - borderThickness / 2;
+    scene.add(backBorder);
 
-    // Left edge
-    const sideEdgeGeo = new THREE.BoxGeometry(2, plateH + 2, plateD + 4);
-    const leftEdge = new THREE.Mesh(sideEdgeGeo, edgeMat);
-    leftEdge.position.set(-plateW / 2 - 1, -plateH / 2, 0);
-    scene.add(leftEdge);
+    // Left border
+    const sideBorderGeo = new THREE.BoxGeometry(borderThickness, borderH, plateD + borderThickness * 2);
+    const leftBorder = new THREE.Mesh(sideBorderGeo, borderMat);
+    leftBorder.position.set(-plateW / 2 - borderThickness / 2, -plateH / 2, 0);
+    scene.add(leftBorder);
 
-    // Right edge
-    const rightEdge = leftEdge.clone();
-    rightEdge.position.x = plateW / 2 + 1;
-    scene.add(rightEdge);
+    // Right border
+    const rightBorder = leftBorder.clone();
+    rightBorder.position.x = plateW / 2 + borderThickness / 2;
+    scene.add(rightBorder);
 
-    // Corner accents - small metallic caps
-    const cornerGeo = new THREE.CylinderGeometry(4, 4, plateH + 3, 16);
-    const cornerMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x555B6E : 0xB8BCC6,
-        metalness: 0.95,
-        roughness: 0.1,
+    // Corner clips - small rectangular cutout-style blocks at each corner
+    const clipW = 16, clipD = 16, clipH = plateH + 2;
+    const clipMat = new THREE.MeshStandardMaterial({
+        color: 0x2A2E38,
+        metalness: 0.2,
+        roughness: 0.7,
     });
-    const cornerPositions = [
-        [-plateW/2, -plateH/2, -plateD/2],
-        [plateW/2, -plateH/2, -plateD/2],
-        [-plateW/2, -plateH/2, plateD/2],
-        [plateW/2, -plateH/2, plateD/2],
+    const clipOffsetX = plateW / 2 - clipW / 2 + 1;
+    const clipOffsetZ = plateD / 2 - clipD / 2 + 1;
+    const clipPositions = [
+        [-clipOffsetX, -plateH / 2 + 0.5, -clipOffsetZ],
+        [ clipOffsetX, -plateH / 2 + 0.5, -clipOffsetZ],
+        [-clipOffsetX, -plateH / 2 + 0.5,  clipOffsetZ],
+        [ clipOffsetX, -plateH / 2 + 0.5,  clipOffsetZ],
     ];
-    cornerPositions.forEach(pos => {
-        const corner = new THREE.Mesh(cornerGeo, cornerMat);
-        corner.position.set(pos[0], pos[1], pos[2]);
-        scene.add(corner);
+    clipPositions.forEach(pos => {
+        const clipGeo = new THREE.BoxGeometry(clipW, clipH, clipD);
+        const clip = new THREE.Mesh(clipGeo, clipMat);
+        clip.position.set(pos[0], pos[1], pos[2]);
+        scene.add(clip);
     });
 
-    // Fine grid (10mm scale) - denser subdivision
+    // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = isDark ? 0x282D3A : 0xA4ABB8;
+    const fineGridColor = 0x22262F;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
-    fineGrid.material.opacity = isDark ? 0.12 : 0.15;
+    fineGrid.material.opacity = 0.18;
     fineGrid.material.transparent = true;
     scene.add(fineGrid);
 
-    // Coarse grid (50mm scale) - major divisions
-    const coarseGridDivisions = 8;
-    const coarseGridColor = isDark ? 0x464C5E : 0x808897;
-    const coarseGridCenter = isDark ? 0x555B6E : 0x9CA1AE;
-    gridHelper = new THREE.GridHelper(fineGridSize, coarseGridDivisions, coarseGridCenter, coarseGridColor);
-    gridHelper.position.y = 0.5;
-    gridHelper.material.opacity = isDark ? 0.3 : 0.35;
-    gridHelper.material.transparent = true;
-    scene.add(gridHelper);
+    // No coarse grid - assign gridHelper to fine grid for toggle support
+    gridHelper = fineGrid;
 
     // Brand text on plate
     addPlateLabel(plateW, plateD);
@@ -267,9 +292,9 @@ function addPlateLabel(w, d) {
 
     ctx.clearRect(0, 0, 512, 64);
     ctx.font = 'bold 36px -apple-system, sans-serif';
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
     ctx.textAlign = 'center';
-    ctx.fillText('GT Carbon S800', 256, 42);
+    ctx.fillText('GT Carbon HT440', 256, 42);
 
     const texture = new THREE.CanvasTexture(labelCanvas);
     const labelMat = new THREE.MeshBasicMaterial({
@@ -403,7 +428,7 @@ function createEnvironment() {
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -3;
+    ground.position.y = -6;
     ground.receiveShadow = true;
     scene.add(ground);
 
@@ -419,45 +444,6 @@ function createEnvironment() {
     fadeRing.rotation.x = -Math.PI / 2;
     fadeRing.position.y = -2.5;
     scene.add(fadeRing);
-
-    // Volume box outline (faint print volume indicator)
-    const volumeH = 300;
-    const plateW = 410;
-    const plateD = 310;
-    const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(plateW, volumeH, plateD));
-    const lineMat = new THREE.LineBasicMaterial({
-        color: isDark ? 0x464C5E : 0x9CA1AE,
-        transparent: true,
-        opacity: isDark ? 0.15 : 0.2,
-    });
-    const wireframe = new THREE.LineSegments(edges, lineMat);
-    wireframe.position.y = volumeH / 2;
-    scene.add(wireframe);
-
-    // Volume height markers (every 50mm scaled = every 50 units)
-    const markerMat = new THREE.LineBasicMaterial({
-        color: isDark ? 0x3A3F50 : 0xA4ABB8,
-        transparent: true,
-        opacity: isDark ? 0.12 : 0.18,
-    });
-    for (let h = 50; h < volumeH; h += 50) {
-        const pts = [
-            new THREE.Vector3(-plateW/2, h, plateD/2),
-            new THREE.Vector3(plateW/2, h, plateD/2),
-        ];
-        const markerGeo = new THREE.BufferGeometry().setFromPoints(pts);
-        const marker = new THREE.Line(markerGeo, markerMat);
-        scene.add(marker);
-
-        // Side marker
-        const sidePts = [
-            new THREE.Vector3(plateW/2, h, -plateD/2),
-            new THREE.Vector3(plateW/2, h, plateD/2),
-        ];
-        const sideGeo = new THREE.BufferGeometry().setFromPoints(sidePts);
-        const sideMarker = new THREE.Line(sideGeo, markerMat);
-        scene.add(sideMarker);
-    }
 
     // Axis indicator lines at origin - thicker visual
     const axisLen = 50;
@@ -519,9 +505,93 @@ function createAxisLine(start, end, color) {
     return new THREE.Line(geo, mat);
 }
 
+// Model info card - compute and display model stats
+window._updateModelInfoCard = (function() {
+    const elSize = document.getElementById('modelInfoSize');
+    const elVolume = document.getElementById('modelInfoVolume');
+    const elTriangles = document.getElementById('modelInfoTriangles');
+    let frameCount = 0;
+
+    function countTriangles(obj) {
+        let count = 0;
+        obj.traverse(child => {
+            if (child.isMesh && child.geometry) {
+                const geo = child.geometry;
+                if (geo.index) {
+                    count += geo.index.count / 3;
+                } else if (geo.attributes.position) {
+                    count += geo.attributes.position.count / 3;
+                }
+            }
+        });
+        return Math.round(count);
+    }
+
+    function estimateVolume(obj) {
+        let vol = 0;
+        obj.traverse(child => {
+            if (child.isMesh && child.geometry) {
+                const geo = child.geometry;
+                const pos = geo.attributes.position;
+                if (!pos) return;
+                const idx = geo.index;
+                const count = idx ? idx.count / 3 : pos.count / 3;
+                for (let i = 0; i < count; i++) {
+                    let a, b, c;
+                    if (idx) {
+                        a = idx.getX(i * 3);
+                        b = idx.getX(i * 3 + 1);
+                        c = idx.getX(i * 3 + 2);
+                    } else {
+                        a = i * 3; b = i * 3 + 1; c = i * 3 + 2;
+                    }
+                    const ax = pos.getX(a), ay = pos.getY(a), az = pos.getZ(a);
+                    const bx = pos.getX(b), by = pos.getY(b), bz = pos.getZ(b);
+                    const cx = pos.getX(c), cy = pos.getY(c), cz = pos.getZ(c);
+                    vol += (ax*(by*cz - bz*cy) + bx*(cy*az - cz*ay) + cx*(ay*bz - az*by)) / 6;
+                }
+            }
+        });
+        return Math.abs(vol);
+    }
+
+    return function() {
+        if (!model || !elSize) return;
+        frameCount++;
+        if (frameCount % 15 !== 0) return; // Update every 15 frames
+
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        elSize.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} mm`;
+
+        const triangles = countTriangles(model);
+        elTriangles.textContent = triangles.toLocaleString();
+
+        const volume = estimateVolume(model);
+        if (volume > 1000) {
+            elVolume.textContent = (volume / 1000).toFixed(1) + ' cm³';
+        } else {
+            elVolume.textContent = volume.toFixed(1) + ' mm³';
+        }
+    };
+})();
+
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+
+    // Update gizmo dashed lines (translate mode only)
+    if (window._gizmoDashLines && transformControls && model) {
+        const isTranslate = transformControls.visible && transformControls.mode === 'translate';
+        window._gizmoDashLines.forEach(line => {
+            line.visible = isTranslate;
+            if (isTranslate) {
+                line.position.copy(model.position);
+            }
+        });
+    }
+
     renderer.render(scene, camera);
 
     // Sync ViewCube with camera orientation
@@ -529,6 +599,9 @@ function animate() {
         window._viewCube.syncWithCamera();
         window._viewCube.render();
     }
+
+    // Update model info card
+    if (window._updateModelInfoCard) window._updateModelInfoCard();
 }
 
 // Resize handler
@@ -1201,23 +1274,56 @@ function syncPanelFromModel() {
             render() {
                 const p = getPos();
                 return `
-                    <div class="tp-row">
-                        <span class="tp-axis-label axis-x">X</span>
-                        <div class="tp-input-wrap"><input class="tp-input" data-axis="x" type="number" value="${p.x.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                    <div class="tp-section">
+                        <div class="tp-section-header" data-section="worldcoord">
+                            <svg class="tp-section-arrow" viewBox="0 0 10 10" width="10" height="10"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                            <span>世界坐标</span>
+                        </div>
+                        <div class="tp-section-body" id="worldCoordBody">
+                            <div class="tp-row">
+                                <span class="tp-axis-tag axis-x-tag">X</span>
+                                <div class="tp-input-wrap"><input class="tp-input" data-axis="x" type="number" value="${p.x.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                            </div>
+                            <div class="tp-row">
+                                <span class="tp-axis-tag axis-y-tag">Y</span>
+                                <div class="tp-input-wrap"><input class="tp-input" data-axis="y" type="number" value="${p.y.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                            </div>
+                            <div class="tp-row">
+                                <span class="tp-axis-tag axis-z-tag">Z</span>
+                                <div class="tp-input-wrap"><input class="tp-input" data-axis="z" type="number" value="${p.z.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="tp-row">
-                        <span class="tp-axis-label axis-y">Y</span>
-                        <div class="tp-input-wrap"><input class="tp-input" data-axis="y" type="number" value="${p.y.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
-                    </div>
-                    <div class="tp-row">
-                        <span class="tp-axis-label axis-z">Z</span>
-                        <div class="tp-input-wrap"><input class="tp-input" data-axis="z" type="number" value="${p.z.toFixed(4)}" step="0.1"><span class="tp-input-unit">mm</span></div>
+                    <div class="tp-section">
+                        <div class="tp-section-header" data-section="alignplate">
+                            <svg class="tp-section-arrow" viewBox="0 0 10 10" width="10" height="10"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                            <span>对齐盘</span>
+                        </div>
+                        <div class="tp-section-body" id="alignPlateBody">
+                            <div class="tp-align-grid">
+                                <button class="tp-align-btn" data-align="lf" title="左前">◰</button>
+                                <button class="tp-align-btn" data-align="cf" title="中前">◳</button>
+                                <button class="tp-align-btn" data-align="rf" title="右前">◲</button>
+                                <button class="tp-align-btn" data-align="lb" title="左后">◱</button>
+                                <button class="tp-align-btn" data-align="cb" title="中后">◳</button>
+                                <button class="tp-align-btn" data-align="rb" title="右后">◲</button>
+                            </div>
+                            <button class="tp-btn tp-snap-btn" id="snapGridBtn" title="网格对齐"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M8 2v12M2 8h12"/><circle cx="8" cy="8" r="2"/></svg> 网格对齐</button>
+                        </div>
                     </div>
                     <label class="tp-checkbox-row"><input type="checkbox" id="lockModelCb"${modelLocked ? ' checked' : ''}> 锁定模型</label>
                     <label class="tp-checkbox-row"><input type="checkbox" id="dropDownCb"> Drop Down Model</label>
                 `;
             },
             bind() {
+                // Section collapse/expand
+                toolPanelBody.querySelectorAll('.tp-section-header').forEach(header => {
+                    header.addEventListener('click', function() {
+                        const section = this.closest('.tp-section');
+                        section.classList.toggle('collapsed');
+                    });
+                });
+
                 const inputs = toolPanelBody.querySelectorAll('.tp-input');
                 inputs.forEach(inp => {
                     inp.addEventListener('change', function() {
@@ -1244,6 +1350,39 @@ function syncPanelFromModel() {
                             model.position.y = 0;
                             inputs[1].value = '0.0000';
                         }
+                    });
+                }
+                // Alignment buttons
+                const plateW = 410, plateD = 310;
+                const alignPositions = {
+                    lf: [-plateW/4, 0, plateD/4],
+                    cf: [0, 0, plateD/4],
+                    rf: [plateW/4, 0, plateD/4],
+                    lb: [-plateW/4, 0, -plateD/4],
+                    cb: [0, 0, -plateD/4],
+                    rb: [plateW/4, 0, -plateD/4],
+                };
+                toolPanelBody.querySelectorAll('.tp-align-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (!model) return;
+                        const key = this.dataset.align;
+                        const pos = alignPositions[key];
+                        if (pos) {
+                            model.position.set(pos[0], pos[1], pos[2]);
+                            if (typeof syncPanelFromModel === 'function') syncPanelFromModel();
+                            showToast('已对齐到 ' + this.title);
+                        }
+                    });
+                });
+                // Snap grid button
+                const snapBtn = toolPanelBody.querySelector('#snapGridBtn');
+                if (snapBtn) {
+                    snapBtn.addEventListener('click', function() {
+                        if (!model) return;
+                        model.position.x = Math.round(model.position.x / 10) * 10;
+                        model.position.z = Math.round(model.position.z / 10) * 10;
+                        if (typeof syncPanelFromModel === 'function') syncPanelFromModel();
+                        showToast('已对齐到网格');
                     });
                 }
             }
@@ -1580,7 +1719,7 @@ window._viewCube = (function() {
 
     const SIZE = 140;
     const CENTER = SIZE / 2;
-    const CUBE_SIZE = 36; // half-size of cube (bigger for 140px)
+    const CUBE_SIZE = 28; // half-size of cube (Bambu style, slightly smaller)
 
     // Cube vertices in 3D (centered at origin)
     const vertices = [
@@ -1590,12 +1729,12 @@ window._viewCube = (function() {
 
     // Faces: [vertex indices], label, viewName
     const faces = [
-        { verts: [4, 5, 6, 7], label: '前', view: 'front' },
-        { verts: [1, 0, 3, 2], label: '后', view: 'back' },
-        { verts: [5, 1, 2, 6], label: '右', view: 'right' },
-        { verts: [0, 4, 7, 3], label: '左', view: 'left' },
-        { verts: [7, 6, 2, 3], label: '上', view: 'top' },
-        { verts: [0, 1, 5, 4], label: '下', view: 'bottom' },
+        { verts: [4, 5, 6, 7], label: '前面', view: 'front' },
+        { verts: [1, 0, 3, 2], label: '后面', view: 'back' },
+        { verts: [5, 1, 2, 6], label: '右面', view: 'right' },
+        { verts: [0, 4, 7, 3], label: '左面', view: 'left' },
+        { verts: [7, 6, 2, 3], label: '顶部', view: 'top' },
+        { verts: [0, 1, 5, 4], label: '底部', view: 'bottom' },
     ];
 
     // 12 edges with direction labels
@@ -1820,31 +1959,43 @@ window._viewCube = (function() {
             }
         });
 
-        // --- Axis indicator (centered on cube) ---
-        const axisOrigin = { x: CENTER, y: CENTER };
-        const axisLen = CUBE_SIZE * 1.3;
-        const axes = [
-            { dir: [1, 0, 0], color: '#E53935', label: 'X' },  // red
-            { dir: [0, 1, 0], color: '#43A047', label: 'Y' },  // green
-            { dir: [0, 0, 1], color: '#1E88E5', label: 'Z' },  // blue
+        // --- Axis indicator (separate, bottom-left of cube) ---
+        const axisOriginX = 24;
+        const axisOriginY = SIZE - 24;
+        const axisScale = 18;
+        const axesDefs = [
+            { dir: [1, 0, 0], color: '#E53935', label: 'x' },  // red = X (right)
+            { dir: [0, 1, 0], color: '#43A047', label: 'y' },  // green = Y (up)
+            { dir: [0, 0, 1], color: '#1E88E5', label: 'z' },  // blue = Z (front)
         ];
+        // Project axis directions using same rotation as cube
+        function projectAxis(dx, dy, dz) {
+            const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+            let x1 = dx * cosY + dz * sinY;
+            let z1 = -dx * sinY + dz * cosY;
+            const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+            let y1 = dy * cosX - z1 * sinX;
+            return { x: x1 * axisScale, y: -y1 * axisScale };
+        }
         // Draw origin dot
-        const originProj = project(0, 0, 0);
-        axes.forEach(({ dir: [dx, dy, dz], color, label }) => {
-            // Use the same project() function as the cube for consistent perspective
-            const tip = project(dx * 1.3, dy * 1.3, dz * 1.3);
-            const ex = tip.x;
-            const ey = tip.y;
-            html += `<line x1="${originProj.x.toFixed(1)}" y1="${originProj.y.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>`;
-            // Arrow tip
-            const tipLen = 4;
-            const angle = Math.atan2(ey - originProj.y, ex - originProj.x);
-            const a1x = ex - tipLen * Math.cos(angle - 0.4);
-            const a1y = ey - tipLen * Math.sin(angle - 0.4);
-            const a2x = ex - tipLen * Math.cos(angle + 0.4);
-            const a2y = ey - tipLen * Math.sin(angle + 0.4);
-            html += `<path d="M${ex.toFixed(1)},${ey.toFixed(1)} L${a1x.toFixed(1)},${a1y.toFixed(1)} M${ex.toFixed(1)},${ey.toFixed(1)} L${a2x.toFixed(1)},${a2y.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>`;
-            html += `<text x="${(ex + (ex - originProj.x) * 0.25).toFixed(1)}" y="${(ey + (ey - originProj.y) * 0.25).toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-size="10" font-weight="700" font-family="-apple-system, sans-serif" opacity="0.9">${label}</text>`;
+        html += `<circle cx="${axisOriginX}" cy="${axisOriginY}" r="2" fill="#888"/>`;
+        axesDefs.forEach(({ dir: [dx, dy, dz], color, label }) => {
+            const tip = projectAxis(dx, dy, dz);
+            const ex = axisOriginX + tip.x;
+            const ey = axisOriginY + tip.y;
+            html += `<line x1="${axisOriginX}" y1="${axisOriginY}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>`;
+            // Filled triangle arrowhead
+            const tipLen = 5;
+            const angle = Math.atan2(ey - axisOriginY, ex - axisOriginX);
+            const a1x = ex - tipLen * Math.cos(angle - 0.35);
+            const a1y = ey - tipLen * Math.sin(angle - 0.35);
+            const a2x = ex - tipLen * Math.cos(angle + 0.35);
+            const a2y = ey - tipLen * Math.sin(angle + 0.35);
+            html += `<polygon points="${ex.toFixed(1)},${ey.toFixed(1)} ${a1x.toFixed(1)},${a1y.toFixed(1)} ${a2x.toFixed(1)},${a2y.toFixed(1)}" fill="${color}" opacity="0.9"/>`;
+            // Label (lowercase)
+            const lx = ex + (ex - axisOriginX) * 0.35;
+            const ly = ey + (ey - axisOriginY) * 0.35;
+            html += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-size="9" font-weight="700" font-family="-apple-system, sans-serif" opacity="0.9">${label}</text>`;
         });
 
         svg.innerHTML = `<defs>${defs}</defs>${html}`;
@@ -1990,6 +2141,15 @@ window._viewCube = (function() {
             }
         }
         return inside;
+    }
+
+    // Gear button click
+    const gearBtn = document.getElementById('viewCubeGearBtn');
+    if (gearBtn) {
+        gearBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showToast('视图设置（开发中）');
+        });
     }
 
     return { render, syncWithCamera };

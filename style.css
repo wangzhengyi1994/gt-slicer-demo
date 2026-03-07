@@ -1734,6 +1734,83 @@ html, body {
     width: 14px;
     height: 14px;
 }
+/* Tool panel collapsible sections */
+.tp-section {
+    margin-bottom: 8px;
+}
+.tp-section-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 0;
+    user-select: none;
+}
+.tp-section-header:hover {
+    color: var(--text-primary);
+}
+.tp-section-arrow {
+    transition: transform 0.15s;
+    transform: rotate(90deg);
+    flex-shrink: 0;
+}
+.tp-section.collapsed .tp-section-arrow {
+    transform: rotate(0deg);
+}
+.tp-section.collapsed .tp-section-body {
+    display: none;
+}
+.tp-section-body {
+    padding-top: 6px;
+}
+/* Colored axis tags (Bambu style) */
+.tp-axis-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+.tp-axis-tag.axis-x-tag { background: #E74C3C; }
+.tp-axis-tag.axis-y-tag { background: #2ECC71; }
+.tp-axis-tag.axis-z-tag { background: #3498DB; }
+/* Alignment grid */
+.tp-align-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.tp-align-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    font-size: 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--transition);
+}
+.tp-align-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+.tp-snap-btn {
+    width: 100%;
+    justify-content: center;
+}
 .tp-btn-row {
     display: flex;
     gap: 6px;
@@ -1832,8 +1909,8 @@ html, body {
 /* SVG ViewCube Orientation Widget */
 .viewcube-container {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    bottom: 60px;
+    left: 12px;
     z-index: 50;
     width: 140px;
     height: 140px;
@@ -1854,31 +1931,66 @@ html, body {
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
 }
 
-/* Model Info Overlay */
-.model-info-overlay {
+.viewcube-gear-btn {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    line-height: 1;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+.viewcube-gear-btn:hover {
+    opacity: 1;
+    background: var(--bg-card-hover);
+}
+
+/* Model Info Card (bottom-right floating) */
+.model-info-card {
     position: absolute;
     bottom: 16px;
-    left: 60px;
-    background: var(--bg-panel);
-    /* backdrop-filter removed: pure solid colors */
-    border: 1px solid var(--border-color);
-    padding: 12px 16px;
-    display: flex;
-    gap: 24px;
+    right: 16px;
+    background: rgba(20, 22, 30, 0.75);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 10px 14px;
     z-index: 40;
+    min-width: 160px;
+    pointer-events: none;
 }
-
-.model-info-row {
+.model-info-card-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.model-info-card-row {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 2px;
 }
-
-.model-info-label {
+.model-info-card-label {
     font-size: 10px;
-    color: var(--text-tertiary);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
+.model-info-card-value {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    font-family: var(--font-mono);
 }
 
 .model-info-value {
