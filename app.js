@@ -28,11 +28,11 @@ function initThreeJS() {
     // Blue-gray scale: dark=gray-950 #0D0F17, light=gray-200 #B8BCC6
     const isDark = document.body.classList.contains('theme-dark');
     if (isDark) {
-        scene.fog = new THREE.FogExp2(0x0D0F17, 0.0015);
+        // No fog
         scene.background = new THREE.Color(0x0D0F17);
     } else {
-        scene.fog = new THREE.FogExp2(0x94999F, 0.001);
-        scene.background = new THREE.Color(0x94999F);
+        // No fog
+        scene.background = new THREE.Color(0x9EA3AA);
     }
 
     // Camera
@@ -307,7 +307,7 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xE8A820,
+        color: 0xF0A000,
         metalness: 0.05,
         roughness: 0.4,
         transparent: false,
@@ -315,7 +315,7 @@ function createDemoModel() {
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0xD09018,
+        color: 0xE09000,
         metalness: 0.08,
         roughness: 0.45,
         transparent: false,
@@ -764,8 +764,8 @@ function rebuildScene() {
     selectedModel = null;
     selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
-    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0x94999F, 0.001);
-    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x94999F);
+    // No fog
+    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x9EA3AA);
     renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
 
     createLighting();
