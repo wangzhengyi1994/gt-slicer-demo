@@ -1588,7 +1588,8 @@ html, body {
 .grid-type-popup {
     position: absolute;
     left: 60px;
-    bottom: 60px;
+    top: 50%;
+    transform: translateY(-50%);
     background: var(--bg-elevated);
     border: 1px solid var(--border-default);
     border-radius: 8px;
@@ -1812,8 +1813,9 @@ html, body {
    ============================================ */
 .tool-panel {
     position: absolute;
-    left: 54px;
-    top: 12px;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 49;
     width: 240px;
     background: var(--bg-panel);
