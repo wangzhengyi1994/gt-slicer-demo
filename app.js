@@ -2691,6 +2691,54 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================
+// UNDO / REDO / RESET / LAYOUT / SNAP ROTATION
+// ============================================
+(function() {
+    var undoBtn = document.getElementById('undoBtn');
+    var redoBtn = document.getElementById('redoBtn');
+    var resetBtn = document.getElementById('resetBtn');
+    var layoutBtn = document.getElementById('layoutBtn');
+    var snapCheck = document.getElementById('snapRotation');
+
+    if (undoBtn) undoBtn.addEventListener('click', function() {
+        if (typeof showToast === 'function') showToast('撤销');
+    });
+    if (redoBtn) redoBtn.addEventListener('click', function() {
+        if (typeof showToast === 'function') showToast('重做');
+    });
+    if (resetBtn) resetBtn.addEventListener('click', function() {
+        // Reset all models to initial positions
+        if (models && models.length > 0) {
+            clearSelection();
+            models.forEach(function(m, i) {
+                m.position.set(i === 0 ? -90 : 100, 0, i === 0 ? 0 : 20);
+                m.rotation.set(0, 0, 0);
+                m.scale.set(1, 1, 1);
+            });
+            selectModel(models[0]);
+            if (typeof showToast === 'function') showToast('已重置所有模型');
+        }
+    });
+    if (layoutBtn) layoutBtn.addEventListener('click', function() {
+        // Auto-layout: spread models evenly on plate
+        if (models && models.length > 0) {
+            var spacing = 200 / models.length;
+            models.forEach(function(m, i) {
+                var x = -100 + spacing * i + spacing / 2;
+                m.position.set(x, 0, 0);
+            });
+            if (typeof showToast === 'function') showToast('自动布局完成');
+        }
+    });
+    if (snapCheck) snapCheck.addEventListener('change', function() {
+        // Snap rotation: set rotation snap on transformControls
+        if (typeof transformControls !== 'undefined' && transformControls) {
+            transformControls.setRotationSnap(this.checked ? THREE.MathUtils.degToRad(15) : null);
+        }
+    });
+})();
+
+// ============================================
 // GRID TYPE POPUP
 // ============================================
 (function() {
