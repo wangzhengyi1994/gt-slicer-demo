@@ -190,8 +190,8 @@ function createBuildPlate() {
     const isDark = document.body.classList.contains('theme-dark');
 
     // Build plate dimensions (scaled from GT Carbon S800: 820x620mm)
-    const plateW = 410;
-    const plateD = 310;
+    const plateW = 420;
+    const plateD = 320;
     const plateH = 4;
 
     // Build plate - light blue-gray like reference, solid and clear
@@ -258,8 +258,8 @@ function createBuildPlate() {
     });
 
     // Fine grid only (10mm spacing), very faint
-    const fineGridSize = 400;
-    const fineGridDivisions = 40;
+    const fineGridSize = 300;
+    const fineGridDivisions = 30;
     const fineGridColor = isDark ? 0x4A5060 : 0xFFFFFF;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
@@ -284,9 +284,9 @@ function addPlateLabel(w, d) {
 
     ctx.clearRect(0, 0, 512, 64);
     ctx.font = 'bold 36px -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.textAlign = 'center';
-    ctx.fillText('GT Carbon HT440', 256, 42);
+    ctx.fillText('GT Carbon S800', 256, 42);
 
     const texture = new THREE.CanvasTexture(labelCanvas);
     const labelMat = new THREE.MeshBasicMaterial({
@@ -295,7 +295,7 @@ function addPlateLabel(w, d) {
         depthWrite: false,
     });
 
-    const labelGeo = new THREE.PlaneGeometry(200, 24);
+    const labelGeo = new THREE.PlaneGeometry(300, 36);
     const label = new THREE.Mesh(labelGeo, labelMat);
     label.rotation.x = -Math.PI / 2;
     label.position.set(0, 1, d / 2 - 30);
@@ -307,17 +307,17 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xF0A000,
+        color: 0x707478,
         metalness: 0.05,
-        roughness: 0.4,
+        roughness: 0.6,
         transparent: false,
         opacity: 1.0,
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0xE09000,
+        color: 0x606468,
         metalness: 0.08,
-        roughness: 0.45,
+        roughness: 0.6,
         transparent: false,
         opacity: 1.0,
     });
@@ -490,7 +490,7 @@ function selectModel(m) {
             var shell = new THREE.Mesh(child.geometry, outlineMat);
             shell.position.copy(child.position);
             shell.rotation.copy(child.rotation);
-            shell.scale.copy(child.scale).multiplyScalar(1.12);
+            shell.scale.copy(child.scale).multiplyScalar(1.25);
             outlineGroup.add(shell);
         }
     });
