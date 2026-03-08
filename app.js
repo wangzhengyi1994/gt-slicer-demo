@@ -31,8 +31,8 @@ function initThreeJS() {
         scene.fog = new THREE.FogExp2(0x0D0F17, 0.0015);
         scene.background = new THREE.Color(0x0D0F17);
     } else {
-        scene.fog = new THREE.FogExp2(0xDDE0E6, 0.001);
-        scene.background = new THREE.Color(0xDDE0E6);
+        scene.fog = new THREE.FogExp2(0xC8CDD4, 0.001);
+        scene.background = new THREE.Color(0xC8CDD4);
     }
 
     // Camera
@@ -56,7 +56,7 @@ function initThreeJS() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.5;
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // Controls
@@ -140,13 +140,13 @@ function createLighting() {
 
     // Strong ambient light for clear visibility
     const ambient = new THREE.AmbientLight(
-        isDark ? 0x555566 : 0xffffff,
-        isDark ? 0.6 : 0.7
+        isDark ? 0x555566 : 0xB0B8C8,
+        isDark ? 0.6 : 0.5
     );
     scene.add(ambient);
 
     // Main directional light - bright key light
-    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 1.2);
+    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 0.9);
     mainLight.position.set(300, 500, 400);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 4096;
@@ -163,25 +163,25 @@ function createLighting() {
     scene.add(mainLight);
 
     // Fill light - bright, reduce harsh shadows
-    const fillLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.4 : 0.6);
+    const fillLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.4 : 0.35);
     fillLight.position.set(-200, 300, -100);
     scene.add(fillLight);
 
     // Back fill for even illumination
-    const backLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.3 : 0.5);
+    const backLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.3 : 0.3);
     backLight.position.set(0, 200, -400);
     scene.add(backLight);
 
     // Hemisphere for ground bounce - brighter
     const hemiLight = new THREE.HemisphereLight(
-        isDark ? 0x334455 : 0xffffff,
-        isDark ? 0x222233 : 0xB8C4D0,
-        isDark ? 0.5 : 0.6
+        isDark ? 0x334455 : 0xC0C8D8,
+        isDark ? 0x222233 : 0x909AA8,
+        isDark ? 0.5 : 0.45
     );
     scene.add(hemiLight);
 
     // Top-down fill
-    const topLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.2 : 0.4);
+    const topLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.2 : 0.2);
     topLight.position.set(0, 600, 0);
     scene.add(topLight);
 }
@@ -196,9 +196,9 @@ function createBuildPlate() {
 
     // Build plate - light blue-gray like reference, solid and clear
     const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x2A2E38 : 0xC8CED8,
-        metalness: 0.05,
-        roughness: 0.8,
+        color: isDark ? 0x2A2E38 : 0xA8B0BC,
+        metalness: 0.08,
+        roughness: 0.75,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
@@ -310,7 +310,7 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xC8C8C8,
+        color: 0xB0B0B0,
         metalness: 0.12,
         roughness: 0.45,
         transparent: false,
@@ -318,7 +318,7 @@ function createDemoModel() {
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0xA0A0A0,
+        color: 0x909090,
         metalness: 0.15,
         roughness: 0.5,
         transparent: false,
@@ -548,7 +548,7 @@ function createEnvironment() {
     // Ground plane with subtle reflectivity
     const groundGeo = new THREE.PlaneGeometry(4000, 4000);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x0D0F17 : 0xD5D8DE,
+        color: isDark ? 0x0D0F17 : 0xBCC2CA,
         metalness: isDark ? 0.1 : 0.15,
         roughness: isDark ? 0.95 : 0.85,
     });
@@ -774,9 +774,9 @@ function rebuildScene() {
     selectedModel = null;
     selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
-    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0xDDE0E6, 0.001);
-    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0xDDE0E6);
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.5;
+    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0xC8CDD4, 0.001);
+    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0xC8CDD4);
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
 
     createLighting();
     createBuildPlate();
