@@ -31,8 +31,8 @@ function initThreeJS() {
         scene.fog = new THREE.FogExp2(0x0D0F17, 0.0015);
         scene.background = new THREE.Color(0x0D0F17);
     } else {
-        scene.fog = new THREE.FogExp2(0xC8CDD4, 0.001);
-        scene.background = new THREE.Color(0xC8CDD4);
+        scene.fog = new THREE.FogExp2(0x8A9099, 0.001);
+        scene.background = new THREE.Color(0x8A9099);
     }
 
     // Camera
@@ -175,7 +175,7 @@ function createLighting() {
     // Hemisphere for ground bounce - brighter
     const hemiLight = new THREE.HemisphereLight(
         isDark ? 0x334455 : 0xC0C8D8,
-        isDark ? 0x222233 : 0x909AA8,
+        isDark ? 0x222233 : 0x505868,
         isDark ? 0.5 : 0.45
     );
     scene.add(hemiLight);
@@ -196,9 +196,9 @@ function createBuildPlate() {
 
     // Build plate - light blue-gray like reference, solid and clear
     const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x2A2E38 : 0xA8B0BC,
-        metalness: 0.08,
-        roughness: 0.75,
+        color: isDark ? 0x1A1D25 : 0x2A2E38,
+        metalness: 0.1,
+        roughness: 0.85,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
@@ -209,7 +209,7 @@ function createBuildPlate() {
 
     // Border frame
     const borderMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x1A1E28 : 0xA0A8B4,
+        color: isDark ? 0x101218 : 0x1A1E28,
         metalness: 0.1,
         roughness: 0.85,
     });
@@ -263,7 +263,7 @@ function createBuildPlate() {
     // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = isDark ? 0x4A5060 : 0x9AA4B4;
+    const fineGridColor = isDark ? 0x4A5060 : 0x484E58;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
     fineGrid.material.opacity = 0.6;
@@ -310,7 +310,7 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xB0B0B0,
+        color: 0xA8A8A8,
         metalness: 0.12,
         roughness: 0.45,
         transparent: false,
@@ -318,7 +318,7 @@ function createDemoModel() {
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0x909090,
+        color: 0x888888,
         metalness: 0.15,
         roughness: 0.5,
         transparent: false,
@@ -488,7 +488,7 @@ function selectModel(m) {
         if (child.isMesh && child.geometry) {
             var edges = new THREE.EdgesGeometry(child.geometry, 20);
             var lineMat = new THREE.LineBasicMaterial({
-                color: 0xFF6030,
+                color: 0xFFFFFF,
                 linewidth: 2,
             });
             var wireframe = new THREE.LineSegments(edges, lineMat);
@@ -509,9 +509,8 @@ function selectModel(m) {
             child.userData.origEmissive = child.material.emissive ? child.material.emissive.getHex() : 0x000000;
             child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
             // Warm yellow tint like reference
-            child.material.color.set(0xE8C848);
-            child.material.emissive = new THREE.Color(0x554400);
-            child.material.emissiveIntensity = 0.2;
+            child.material.emissive = new THREE.Color(0x222222);
+            child.material.emissiveIntensity = 0.15;
         }
     });
 
@@ -529,8 +528,7 @@ function clearSelection() {
         selectionOutline = null;
 
         selectedModel.children.forEach(function(child) {
-            if (child.isMesh && child.material && child.userData.origColor !== undefined) {
-                child.material.color.set(child.userData.origColor);
+            if (child.isMesh && child.material && child.userData.origEmissive !== undefined) {
                 child.material.emissive = new THREE.Color(child.userData.origEmissive);
                 child.material.emissiveIntensity = child.userData.origEmissiveIntensity;
             }
@@ -548,7 +546,7 @@ function createEnvironment() {
     // Ground plane with subtle reflectivity
     const groundGeo = new THREE.PlaneGeometry(4000, 4000);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x0D0F17 : 0xBCC2CA,
+        color: isDark ? 0x0D0F17 : 0x3A3E48,
         metalness: isDark ? 0.1 : 0.15,
         roughness: isDark ? 0.95 : 0.85,
     });
@@ -561,7 +559,7 @@ function createEnvironment() {
     // Gradient fade ring around build plate (environmental depth)
     const fadeRingGeo = new THREE.RingGeometry(280, 800, 64);
     const fadeRingMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x0D0F17 : 0xD0D4DA,
+        color: isDark ? 0x0D0F17 : 0x4A4E58,
         transparent: true,
         opacity: isDark ? 0.5 : 0.3,
         depthWrite: false,
@@ -774,8 +772,8 @@ function rebuildScene() {
     selectedModel = null;
     selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
-    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0xC8CDD4, 0.001);
-    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0xC8CDD4);
+    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0x8A9099, 0.001);
+    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x8A9099);
     renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
 
     createLighting();
