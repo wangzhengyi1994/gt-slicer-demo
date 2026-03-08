@@ -440,37 +440,7 @@ function createDemoModel() {
     model = group1;
     selectModel(group1);
 
-    // === Click selection ===
-    const raycaster = new THREE.Raycaster();
-    const clickMouse = new THREE.Vector2();
-
-    function onClickSelect(event) {
-        // Ignore if dragging (OrbitControls)
-        const rect = renderer.domElement.getBoundingClientRect();
-        clickMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        clickMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        raycaster.setFromCamera(clickMouse, camera);
-
-        let hit = null;
-        for (const m of models) {
-            // Filter out outline shells from raycast
-            var meshChildren = m.children.filter(function(c) { return !c.userData.isOutline; });
-            const intersects = raycaster.intersectObjects(meshChildren, true);
-            if (intersects.length > 0) {
-                hit = m;
-                break;
-            }
-        }
-
-        if (hit) {
-            selectModel(hit);
-        } else {
-            clearSelection();
-        }
-    }
-
-    renderer.domElement.addEventListener('click', onClickSelect);
+    // Click selection is handled globally (see bottom of file)
 }
 
 function selectModel(m) {
@@ -2702,6 +2672,66 @@ document.addEventListener('keydown', (e) => {
             transformControls.setRotationSnap(this.checked ? THREE.MathUtils.degToRad(15) : null);
         }
     });
+})();
+
+// ============================================
+// MODEL CLICK SELECTION (global, registered once)
+// ============================================
+(function() {
+    var _selectRaycaster = new THREE.Raycaster();
+    var _selectMouse = new THREE.Vector2();
+    var _pointerDownPos = { x: 0, y: 0 };
+    var _pointerDownTime = 0;
+
+    document.addEventListener('pointerdown', function(e) {
+        _pointerDownPos.x = e.clientX;
+        _pointerDownPos.y = e.clientY;
+        _pointerDownTime = Date.now();
+    }, true);
+
+    document.addEventListener('pointerup', function(e) {
+        // Only treat as click if pointer didn't move much and was quick
+        var dx = e.clientX - _pointerDownPos.x;
+        var dy = e.clientY - _pointerDownPos.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var elapsed = Date.now() - _pointerDownTime;
+        if (dist > 5 || elapsed > 500) return; // was a drag, not a click
+
+        if (!renderer || !renderer.domElement) return;
+        var canvas = renderer.domElement;
+        var rect = canvas.getBoundingClientRect();
+
+        // Check if click is on the canvas area
+        if (e.clientX < rect.left || e.clientX > rect.right ||
+            e.clientY < rect.top || e.clientY > rect.bottom) return;
+
+        _selectMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        _selectMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        _selectRaycaster.setFromCamera(_selectMouse, camera);
+
+        var hit = null;
+        for (var i = 0; i < models.length; i++) {
+            var m = models[i];
+            var meshes = [];
+            m.traverse(function(child) {
+                if (child.isMesh && !child.parent.userData.isOutline) {
+                    meshes.push(child);
+                }
+            });
+            var intersects = _selectRaycaster.intersectObjects(meshes, false);
+            if (intersects.length > 0) {
+                hit = m;
+                break;
+            }
+        }
+
+        if (hit) {
+            selectModel(hit);
+        } else {
+            clearSelection();
+        }
+    }, true); // useCapture=true to fire before other handlers
 })();
 
 // ============================================
