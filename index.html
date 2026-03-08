@@ -256,6 +256,53 @@
         <div class="viewport" id="viewport">
             <canvas id="three-canvas"></canvas>
 
+            <!-- Preview Mode: View Type + Color Scheme -->
+            <div class="preview-bar" id="previewBar">
+                <div class="preview-bar-left">
+                    <span class="preview-bar-label">查看类型</span>
+                    <div class="preview-dropdown" id="viewTypeDropdown">
+                        <button class="preview-dropdown-btn" id="viewTypeBtn">分层视图 <svg viewBox="0 0 10 6" width="10" height="6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+                        <div class="preview-dropdown-menu" id="viewTypeMenu" style="display:none;">
+                            <div class="preview-dropdown-item active" data-view="layer">分层视图</div>
+                            <div class="preview-dropdown-item" data-view="xray">透视视图</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="preview-bar-right">
+                    <span class="preview-bar-label">颜色方案</span>
+                    <button class="preview-scheme-btn" id="colorSchemeBtn">走线类型 <svg viewBox="0 0 10 6" width="10" height="6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+                </div>
+            </div>
+
+            <!-- Color Scheme Panel -->
+            <div class="color-scheme-panel" id="colorSchemePanel" style="display:none;">
+                <div class="color-scheme-header">
+                    <span>颜色方案</span>
+                    <button class="color-scheme-close" id="colorSchemeClose">&times;</button>
+                </div>
+                <div class="color-scheme-dropdown">
+                    <select id="colorSchemeSelect">
+                        <option value="line-type" selected>走线类型</option>
+                        <option value="speed">速度</option>
+                        <option value="temperature">温度</option>
+                    </select>
+                </div>
+                <div class="color-scheme-list">
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">Resin Extr</span><span class="cs-color" style="background:#D4A020;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">Fiber Extr</span><span class="cs-color" style="background:#C8A828;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">空驶</span><span class="cs-color" style="background:#3366DD;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">打印辅助结构</span><span class="cs-color" style="background:#666666;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">外壳</span><span class="cs-color" style="background:#CC4444;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">填充</span><span class="cs-color" style="background:#DD7722;"></span></label>
+                    <label class="cs-item"><input type="checkbox"><span class="cs-name">开始</span><span class="cs-color" style="background:#DDDDDD;border:1px solid #999;"></span></label>
+                    <label class="cs-item"><input type="checkbox"><span class="cs-name">Fiber</span><span class="cs-color" style="background:#222244;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">Fiber Cut</span><span class="cs-color" style="background:#2244AA;"></span></label>
+                    <label class="cs-item"><input type="checkbox" checked><span class="cs-name">Pre Cut Position</span><span class="cs-color" style="background:#CC4466;"></span></label>
+                    <label class="cs-item cs-item-nochk"><span class="cs-name">顶 / 底层</span><span class="cs-color" style="background:#D4A020;"></span></label>
+                    <label class="cs-item cs-item-nochk"><span class="cs-name">内壁</span><span class="cs-color" style="background:#2244AA;"></span></label>
+                </div>
+            </div>
+
             <!-- Floating Toolbar (moved from left sidebar) -->
             <div class="floating-toolbar" id="floatingToolbar">
                 <button class="ftool-btn active" title="选择" data-tool="select"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2.5l11 7-5.5 1.5-2.5 5.5z"/></svg></button>

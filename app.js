@@ -2735,6 +2735,54 @@ document.addEventListener('keydown', (e) => {
 })();
 
 // ============================================
+// PREVIEW BAR: VIEW TYPE + COLOR SCHEME
+// ============================================
+(function() {
+    var viewBtn = document.getElementById('viewTypeBtn');
+    var viewMenu = document.getElementById('viewTypeMenu');
+    var schemeBtn = document.getElementById('colorSchemeBtn');
+    var schemePanel = document.getElementById('colorSchemePanel');
+    var schemeClose = document.getElementById('colorSchemeClose');
+
+    if (viewBtn && viewMenu) {
+        viewBtn.addEventListener('click', function(e) {
+            viewMenu.style.display = viewMenu.style.display === 'none' ? 'block' : 'none';
+            e.stopPropagation();
+        });
+        viewMenu.querySelectorAll('.preview-dropdown-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                viewMenu.querySelectorAll('.preview-dropdown-item').forEach(function(i) { i.classList.remove('active'); });
+                item.classList.add('active');
+                viewBtn.firstChild.textContent = item.textContent + ' ';
+                viewMenu.style.display = 'none';
+                if (typeof showToast === 'function') showToast('切换到: ' + item.textContent);
+            });
+        });
+    }
+
+    if (schemeBtn && schemePanel) {
+        schemeBtn.addEventListener('click', function(e) {
+            schemePanel.style.display = schemePanel.style.display === 'none' ? 'block' : 'none';
+            e.stopPropagation();
+        });
+    }
+    if (schemeClose && schemePanel) {
+        schemeClose.addEventListener('click', function() {
+            schemePanel.style.display = 'none';
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (viewMenu && !e.target.closest('#viewTypeDropdown')) {
+            viewMenu.style.display = 'none';
+        }
+        if (schemePanel && !e.target.closest('#colorSchemePanel') && !e.target.closest('#colorSchemeBtn')) {
+            schemePanel.style.display = 'none';
+        }
+    });
+})();
+
+// ============================================
 // GRID TYPE POPUP
 // ============================================
 (function() {
