@@ -141,12 +141,12 @@ function createLighting() {
     // Strong ambient light for clear visibility
     const ambient = new THREE.AmbientLight(
         isDark ? 0x555566 : 0x8890A0,
-        isDark ? 0.6 : 0.4
+        isDark ? 0.6 : 0.3
     );
     scene.add(ambient);
 
     // Main directional light - bright key light
-    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 0.85);
+    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 1.0);
     mainLight.position.set(300, 500, 400);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 4096;
@@ -158,7 +158,7 @@ function createLighting() {
     mainLight.shadow.camera.top = 500;
     mainLight.shadow.camera.bottom = -500;
     mainLight.shadow.bias = -0.0003;
-    mainLight.shadow.radius = 4;
+    mainLight.shadow.radius = 2;
     mainLight.shadow.normalBias = 0.02;
     scene.add(mainLight);
 
@@ -307,17 +307,17 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xC1C7CF,
-        metalness: 0.12,
-        roughness: 0.45,
+        color: 0xE8A820,
+        metalness: 0.05,
+        roughness: 0.4,
         transparent: false,
         opacity: 1.0,
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0xC1C7CF,
-        metalness: 0.15,
-        roughness: 0.5,
+        color: 0xD09018,
+        metalness: 0.08,
+        roughness: 0.45,
         transparent: false,
         opacity: 1.0,
     });
@@ -490,7 +490,7 @@ function selectModel(m) {
             var shell = new THREE.Mesh(child.geometry, outlineMat);
             shell.position.copy(child.position);
             shell.rotation.copy(child.rotation);
-            shell.scale.copy(child.scale).multiplyScalar(1.04);
+            shell.scale.copy(child.scale).multiplyScalar(1.06);
             outlineGroup.add(shell);
         }
     });
