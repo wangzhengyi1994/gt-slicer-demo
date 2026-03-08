@@ -2764,7 +2764,8 @@ document.addEventListener('keydown', (e) => {
             item.addEventListener('click', function() {
                 viewMenu.querySelectorAll('.preview-dropdown-item').forEach(function(i) { i.classList.remove('active'); });
                 item.classList.add('active');
-                viewBtn.firstChild.textContent = item.textContent + ' ';
+                var textEl = document.getElementById('viewTypeText');
+                if (textEl) textEl.textContent = item.textContent.trim();
                 viewMenu.style.display = 'none';
                 if (typeof showToast === 'function') showToast('切换到: ' + item.textContent);
             });

@@ -1823,6 +1823,15 @@ html, body {
     gap: 6px;
     min-width: 120px;
 }
+.vt-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.preview-dropdown-item .vt-icon {
+    margin-right: 6px;
+    vertical-align: middle;
+}
 .preview-dropdown-btn:hover,
 .preview-scheme-btn:hover {
     background: var(--bg-card);
