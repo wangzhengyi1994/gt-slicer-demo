@@ -1591,7 +1591,7 @@ html, body {
     padding: 12px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     z-index: 120;
-    min-width: 200px;
+    min-width: 260px;
 }
 .grid-type-icons {
     display: flex;
@@ -1629,7 +1629,83 @@ html, body {
 .grid-type-label {
     font-size: 12px;
     color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+.grid-type-dropdown {
     margin-bottom: 10px;
+}
+.grid-type-dropdown select {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--border-default);
+    border-radius: 5px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+}
+.grid-type-dropdown select:hover {
+    border-color: var(--brand-primary);
+}
+.grid-type-params {
+    margin-bottom: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+.grid-param-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-subtle, rgba(128,128,128,0.1));
+}
+.grid-param-label {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    min-width: 90px;
+}
+.grid-param-input {
+    width: 52px;
+    padding: 3px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: 4px;
+    background: #FFFDE6;
+    color: var(--text-primary);
+    font-size: 12px;
+    text-align: right;
+    outline: none;
+}
+.grid-param-input:focus {
+    border-color: var(--brand-primary);
+    background: #FFFDD0;
+}
+.grid-param-unit {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    width: 22px;
+    text-align: left;
+}
+.grid-param-reset {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+}
+.grid-param-reset:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 .grid-type-settings-btn {
     width: 100%;
