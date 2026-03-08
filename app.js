@@ -56,7 +56,7 @@ function initThreeJS() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
+    renderer.toneMappingExposure = isDark ? 0.7 : 0.85;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // Controls
@@ -755,7 +755,7 @@ function rebuildScene() {
     const isDark = document.body.classList.contains('theme-dark');
     // No fog
     scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x9EA3AA);
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
+    renderer.toneMappingExposure = isDark ? 0.7 : 0.85;
 
     createLighting();
     createBuildPlate();
