@@ -1788,7 +1788,7 @@ html, body {
 .viewport-tabs {
     position: absolute;
     top: 12px;
-    right: 20px;
+    left: 60px;
     z-index: 50;
     display: flex;
     gap: 0;
@@ -1829,13 +1829,12 @@ html, body {
 /* Preview Bar (top of viewport) */
 .preview-bar {
     position: absolute;
-    top: 56px;
-    left: 60px;
+    top: 12px;
     right: 20px;
     z-index: 45;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
     pointer-events: none;
 }
 .preview-bar-left,
@@ -1906,7 +1905,7 @@ html, body {
 /* Color Scheme Panel */
 .color-scheme-panel {
     position: absolute;
-    top: 90px;
+    top: 48px;
     right: 20px;
     z-index: 55;
     width: 240px;
