@@ -2745,6 +2745,22 @@ document.addEventListener('keydown', (e) => {
     }, true); // useCapture=true to fire before other handlers
 })();
 
+
+// ============================================
+// VIEWPORT TABS (准备/预览/监控)
+// ============================================
+document.querySelectorAll('.vp-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.vp-tab').forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        var previewBar = document.getElementById('previewBar');
+        var colorPanel = document.getElementById('colorSchemePanel');
+        var isPreview = this.getAttribute('data-tab-icon') === 'preview';
+        if (previewBar) previewBar.style.display = isPreview ? 'flex' : 'none';
+        if (colorPanel && !isPreview) colorPanel.style.display = 'none';
+    });
+});
+
 // ============================================
 // PREVIEW BAR: VIEW TYPE + COLOR SCHEME
 // ============================================

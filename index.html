@@ -203,28 +203,7 @@
             <button class="topnav-home" title="首页">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10l7-7 7 7"/><path d="M5 8v8h4v-4h2v4h4V8"/></svg>
             </button>
-            <div class="tab-switcher">
-                <button class="tab-btn" data-tab-icon="prepare">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12"/><path d="M5 6h6M5 8h6M5 10h4"/></svg>
-                    准备
-                </button>
-                <button class="tab-btn active" data-tab-icon="preview">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M6 5.5l5 2.5-5 2.5z"/></svg>
-                    预览
-                </button>
-                <button class="tab-btn" data-tab-icon="devices">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="7" width="10" height="6"/><rect x="4" y="3" width="8" height="4"/><rect x="6" y="10" width="4" height="2"/></svg>
-                    设备
-                </button>
-                <button class="tab-btn" data-tab-icon="project">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 4h3l1-2h4l1 2h3v9H2z"/></svg>
-                    项目
-                </button>
-                <button class="tab-btn" data-tab-icon="calibrate">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2"/></svg>
-                    校准
-                </button>
-            </div>
+            <!-- Tab switcher moved to viewport -->
         </div>
 
         <div class="top-bar-right">
@@ -255,6 +234,22 @@
         <!-- 3D Viewport -->
         <div class="viewport" id="viewport">
             <canvas id="three-canvas"></canvas>
+
+            <!-- Floating Tab Switcher (viewport top-right) -->
+            <div class="viewport-tabs" id="viewportTabs">
+                <button class="vp-tab" data-tab-icon="prepare">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="4" height="4" rx="0.5"/><rect x="9" y="3" width="4" height="4" rx="0.5"/><rect x="3" y="9" width="4" height="4" rx="0.5"/><rect x="9" y="9" width="4" height="4" rx="0.5"/></svg>
+                    准备
+                </button>
+                <button class="vp-tab active" data-tab-icon="preview">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 8c2-4 4.5-5 6-5s4 1 6 5c-2 4-4.5 5-6 5s-4-1-6-5z"/><circle cx="8" cy="8" r="2.5"/></svg>
+                    预览
+                </button>
+                <button class="vp-tab" data-tab-icon="monitor">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="3" width="12" height="8" rx="1"/><path d="M6 13h4M8 11v2"/></svg>
+                    监控
+                </button>
+            </div>
 
             <!-- Preview Mode: View Type + Color Scheme -->
             <div class="preview-bar" id="previewBar">

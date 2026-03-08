@@ -1784,10 +1784,52 @@ html, body {
     z-index: 60;
 }
 
+/* Viewport Tabs (floating top-right) */
+.viewport-tabs {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    z-index: 50;
+    display: flex;
+    gap: 0;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 4px;
+}
+.vp-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.vp-tab svg {
+    width: 16px;
+    height: 16px;
+}
+.vp-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+.vp-tab.active {
+    color: var(--brand-primary);
+    background: var(--bg-card);
+    font-weight: 600;
+}
+
 /* Preview Bar (top of viewport) */
 .preview-bar {
     position: absolute;
-    top: 8px;
+    top: 56px;
     left: 60px;
     right: 20px;
     z-index: 45;
@@ -1864,7 +1906,7 @@ html, body {
 /* Color Scheme Panel */
 .color-scheme-panel {
     position: absolute;
-    top: 40px;
+    top: 90px;
     right: 20px;
     z-index: 55;
     width: 240px;
