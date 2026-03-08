@@ -31,8 +31,8 @@ function initThreeJS() {
         scene.fog = new THREE.FogExp2(0x0D0F17, 0.0015);
         scene.background = new THREE.Color(0x0D0F17);
     } else {
-        scene.fog = new THREE.FogExp2(0x8A9099, 0.001);
-        scene.background = new THREE.Color(0x8A9099);
+        scene.fog = new THREE.FogExp2(0x6A7880, 0.001);
+        scene.background = new THREE.Color(0x6A7880);
     }
 
     // Camera
@@ -56,7 +56,7 @@ function initThreeJS() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.1;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // Controls
@@ -174,8 +174,8 @@ function createLighting() {
 
     // Hemisphere for ground bounce - brighter
     const hemiLight = new THREE.HemisphereLight(
-        isDark ? 0x334455 : 0xC0C8D8,
-        isDark ? 0x222233 : 0x505868,
+        isDark ? 0x334455 : 0x8A9098,
+        isDark ? 0x222233 : 0x404850,
         isDark ? 0.5 : 0.45
     );
     scene.add(hemiLight);
@@ -196,9 +196,9 @@ function createBuildPlate() {
 
     // Build plate - light blue-gray like reference, solid and clear
     const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x1A1D25 : 0x2A2E38,
-        metalness: 0.1,
-        roughness: 0.85,
+        color: isDark ? 0x1A1D25 : 0x383C44,
+        metalness: 0.15,
+        roughness: 0.7,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
@@ -209,7 +209,7 @@ function createBuildPlate() {
 
     // Border frame
     const borderMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x101218 : 0x1A1E28,
+        color: isDark ? 0x101218 : 0x505660,
         metalness: 0.1,
         roughness: 0.85,
     });
@@ -241,7 +241,7 @@ function createBuildPlate() {
     // Corner clips - small rectangular cutout-style blocks at each corner
     const clipW = 16, clipD = 16, clipH = plateH + 2;
     const clipMat = new THREE.MeshStandardMaterial({
-        color: 0x2A2E38,
+        color: isDark ? 0x2A2E38 : 0x606870,
         metalness: 0.2,
         roughness: 0.7,
     });
@@ -263,10 +263,10 @@ function createBuildPlate() {
     // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = isDark ? 0x4A5060 : 0x484E58;
+    const fineGridColor = isDark ? 0x4A5060 : 0x505660;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
-    fineGrid.material.opacity = 0.6;
+    fineGrid.material.opacity = 0.5;
     fineGrid.material.transparent = true;
     scene.add(fineGrid);
 
@@ -310,7 +310,7 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xA8A8A8,
+        color: 0xB0B4B8,
         metalness: 0.12,
         roughness: 0.45,
         transparent: false,
@@ -318,7 +318,7 @@ function createDemoModel() {
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0x888888,
+        color: 0xA0A4A8,
         metalness: 0.15,
         roughness: 0.5,
         transparent: false,
@@ -546,7 +546,7 @@ function createEnvironment() {
     // Ground plane with subtle reflectivity
     const groundGeo = new THREE.PlaneGeometry(4000, 4000);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x0D0F17 : 0x3A3E48,
+        color: isDark ? 0x0D0F17 : 0x505860,
         metalness: isDark ? 0.1 : 0.15,
         roughness: isDark ? 0.95 : 0.85,
     });
@@ -559,7 +559,7 @@ function createEnvironment() {
     // Gradient fade ring around build plate (environmental depth)
     const fadeRingGeo = new THREE.RingGeometry(280, 800, 64);
     const fadeRingMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x0D0F17 : 0x4A4E58,
+        color: isDark ? 0x0D0F17 : 0x586068,
         transparent: true,
         opacity: isDark ? 0.5 : 0.3,
         depthWrite: false,
@@ -772,9 +772,9 @@ function rebuildScene() {
     selectedModel = null;
     selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
-    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0x8A9099, 0.001);
-    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x8A9099);
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
+    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0x6A7880, 0.001);
+    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x6A7880);
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.1;
 
     createLighting();
     createBuildPlate();
