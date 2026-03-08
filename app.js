@@ -31,8 +31,8 @@ function initThreeJS() {
         scene.fog = new THREE.FogExp2(0x0D0F17, 0.0015);
         scene.background = new THREE.Color(0x0D0F17);
     } else {
-        scene.fog = new THREE.FogExp2(0xB8BCC6, 0.0015);
-        scene.background = new THREE.Color(0xB8BCC6);
+        scene.fog = new THREE.FogExp2(0xDDE0E6, 0.001);
+        scene.background = new THREE.Color(0xDDE0E6);
     }
 
     // Camera
@@ -56,7 +56,7 @@ function initThreeJS() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.2;
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.5;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // Controls
@@ -138,15 +138,15 @@ function initThreeJS() {
 function createLighting() {
     const isDark = document.body.classList.contains('theme-dark');
 
-    // Ambient light - softer, more nuanced
+    // Strong ambient light for clear visibility
     const ambient = new THREE.AmbientLight(
-        isDark ? 0x333847 : 0x8890A0,
-        isDark ? 0.5 : 0.45
+        isDark ? 0x555566 : 0xffffff,
+        isDark ? 0.6 : 0.7
     );
     scene.add(ambient);
 
-    // Main directional light (key light) - higher quality shadows
-    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.9 : 0.85);
+    // Main directional light - bright key light
+    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 1.2);
     mainLight.position.set(300, 500, 400);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 4096;
@@ -158,38 +158,30 @@ function createLighting() {
     mainLight.shadow.camera.top = 500;
     mainLight.shadow.camera.bottom = -500;
     mainLight.shadow.bias = -0.0003;
-    mainLight.shadow.radius = 6;
+    mainLight.shadow.radius = 4;
     mainLight.shadow.normalBias = 0.02;
     scene.add(mainLight);
 
-    // Fill light - cooler tone for contrast
-    const fillLight = new THREE.DirectionalLight(
-        isDark ? 0x3344aa : 0x8899cc,
-        isDark ? 0.35 : 0.3
-    );
-    fillLight.position.set(-200, 200, -100);
+    // Fill light - bright, reduce harsh shadows
+    const fillLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.4 : 0.6);
+    fillLight.position.set(-200, 300, -100);
     scene.add(fillLight);
 
-    // Rim light (brand accent) - subtle purple edge
-    const rimLight = new THREE.DirectionalLight(isDark ? 0x8B52DC : 0x9B5EF0, 0.2);
-    rimLight.position.set(-100, 300, 300);
-    scene.add(rimLight);
+    // Back fill for even illumination
+    const backLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.3 : 0.5);
+    backLight.position.set(0, 200, -400);
+    scene.add(backLight);
 
-    // Secondary rim from opposite side
-    const rimLight2 = new THREE.DirectionalLight(isDark ? 0x4466bb : 0x6688dd, 0.12);
-    rimLight2.position.set(200, 100, -300);
-    scene.add(rimLight2);
-
-    // Bottom hemisphere for ground bounce
+    // Hemisphere for ground bounce - brighter
     const hemiLight = new THREE.HemisphereLight(
-        isDark ? 0x232734 : 0xC1C7CF,
-        isDark ? 0x171A25 : 0x808897,
-        isDark ? 0.4 : 0.5
+        isDark ? 0x334455 : 0xffffff,
+        isDark ? 0x222233 : 0xB8C4D0,
+        isDark ? 0.5 : 0.6
     );
     scene.add(hemiLight);
 
-    // Soft top-down fill for even illumination
-    const topLight = new THREE.DirectionalLight(isDark ? 0x222233 : 0xDFE1E6, 0.15);
+    // Top-down fill
+    const topLight = new THREE.DirectionalLight(0xffffff, isDark ? 0.2 : 0.4);
     topLight.position.set(0, 600, 0);
     scene.add(topLight);
 }
@@ -202,11 +194,11 @@ function createBuildPlate() {
     const plateD = 310;
     const plateH = 4;
 
-    // Dark PEI texture - deep charcoal, use MeshLambertMaterial to resist over-lighting
-    const plateMaterial = new THREE.MeshLambertMaterial({
-        color: 0x1A1D25,
-        emissive: 0x0A0C12,
-        emissiveIntensity: 1.0,
+    // Build plate - light blue-gray like reference, solid and clear
+    const plateMaterial = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x2A2E38 : 0xC8CED8,
+        metalness: 0.05,
+        roughness: 0.8,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
@@ -215,11 +207,11 @@ function createBuildPlate() {
     buildPlate.receiveShadow = true;
     scene.add(buildPlate);
 
-    // Dark border frame (slightly darker than plate)
+    // Border frame
     const borderMat = new THREE.MeshStandardMaterial({
-        color: 0x101218,
+        color: isDark ? 0x1A1E28 : 0xA0A8B4,
         metalness: 0.1,
-        roughness: 0.9,
+        roughness: 0.85,
     });
     const borderThickness = 6;
     const borderH = plateH + 1;
@@ -271,10 +263,10 @@ function createBuildPlate() {
     // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = isDark ? 0x3A3F4E : 0x8890A0;
+    const fineGridColor = isDark ? 0x4A5060 : 0x9AA4B4;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
-    fineGrid.material.opacity = 0.45;
+    fineGrid.material.opacity = 0.6;
     fineGrid.material.transparent = true;
     scene.add(fineGrid);
 
@@ -488,18 +480,16 @@ function selectModel(m) {
     selectedModel = m;
     model = m;
 
-    // White edge outline
+    // Orange-red edge outline (like Bambu Studio selection)
     const outlineGroup = new THREE.Group();
     outlineGroup.userData.isOutline = true;
 
     m.children.forEach(function(child) {
         if (child.isMesh && child.geometry) {
-            var edges = new THREE.EdgesGeometry(child.geometry, 30);
+            var edges = new THREE.EdgesGeometry(child.geometry, 20);
             var lineMat = new THREE.LineBasicMaterial({
-                color: 0xffffff,
+                color: 0xFF6030,
                 linewidth: 2,
-                transparent: true,
-                opacity: 0.9,
             });
             var wireframe = new THREE.LineSegments(edges, lineMat);
             wireframe.position.copy(child.position);
@@ -512,13 +502,16 @@ function selectModel(m) {
     m.add(outlineGroup);
     selectionOutline = outlineGroup;
 
-    // Emissive glow
+    // Warm tint on selected model
     m.children.forEach(function(child) {
         if (child.isMesh && child.material && !child.userData.isOutline) {
+            child.userData.origColor = child.material.color.getHex();
             child.userData.origEmissive = child.material.emissive ? child.material.emissive.getHex() : 0x000000;
             child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
-            child.material.emissive = new THREE.Color(0x333333);
-            child.material.emissiveIntensity = 0.3;
+            // Warm yellow tint like reference
+            child.material.color.set(0xE8C848);
+            child.material.emissive = new THREE.Color(0x554400);
+            child.material.emissiveIntensity = 0.2;
         }
     });
 
@@ -536,7 +529,8 @@ function clearSelection() {
         selectionOutline = null;
 
         selectedModel.children.forEach(function(child) {
-            if (child.isMesh && child.material && child.userData.origEmissive !== undefined) {
+            if (child.isMesh && child.material && child.userData.origColor !== undefined) {
+                child.material.color.set(child.userData.origColor);
                 child.material.emissive = new THREE.Color(child.userData.origEmissive);
                 child.material.emissiveIntensity = child.userData.origEmissiveIntensity;
             }
@@ -554,7 +548,7 @@ function createEnvironment() {
     // Ground plane with subtle reflectivity
     const groundGeo = new THREE.PlaneGeometry(4000, 4000);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x0D0F17 : 0xC1C7CF,
+        color: isDark ? 0x0D0F17 : 0xD5D8DE,
         metalness: isDark ? 0.1 : 0.15,
         roughness: isDark ? 0.95 : 0.85,
     });
@@ -567,7 +561,7 @@ function createEnvironment() {
     // Gradient fade ring around build plate (environmental depth)
     const fadeRingGeo = new THREE.RingGeometry(280, 800, 64);
     const fadeRingMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x0D0F17 : 0xB8BCC6,
+        color: isDark ? 0x0D0F17 : 0xD0D4DA,
         transparent: true,
         opacity: isDark ? 0.5 : 0.3,
         depthWrite: false,
@@ -780,9 +774,9 @@ function rebuildScene() {
     selectedModel = null;
     selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
-    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0xB8BCC6, 0.0015);
-    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0xB8BCC6);
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.2;
+    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0xDDE0E6, 0.001);
+    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0xDDE0E6);
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.5;
 
     createLighting();
     createBuildPlate();
