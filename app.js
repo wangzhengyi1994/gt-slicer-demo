@@ -12,6 +12,9 @@ let buildPlate, model, gridHelper;
 let transformControls;
 let modelInitialSize = { x: 0, y: 0, z: 0 }; // bounding box baseline for scale 100%
 let modelLocked = false;
+let models = []; // all models in scene
+let selectedModel = null; // currently selected model
+let selectionOutline = null; // EdgesGeometry outline for selected model
 let mousePos = { x: 0, y: 0 };
 
 function initThreeJS() {
@@ -268,10 +271,10 @@ function createBuildPlate() {
     // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = 0x22262F;
+    const fineGridColor = isDark ? 0x3A3F4E : 0x8890A0;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
-    fineGrid.material.opacity = 0.18;
+    fineGrid.material.opacity = 0.45;
     fineGrid.material.transparent = true;
     scene.add(fineGrid);
 
@@ -313,57 +316,57 @@ function addPlateLabel(w, d) {
 function createDemoModel() {
     const isDark = document.body.classList.contains('theme-dark');
 
-    // Create a sample 3D model (a mechanical bracket-like shape)
-    const group = new THREE.Group();
-
-    const matOrange = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x8B52DC : 0x7B2FD4,
-        metalness: 0.1,
-        roughness: 0.6,
+    // Solid opaque materials - light gray like real slicer software
+    const matLight = new THREE.MeshStandardMaterial({
+        color: 0xC8C8C8,
+        metalness: 0.12,
+        roughness: 0.45,
+        transparent: false,
+        opacity: 1.0,
     });
 
-    const matBody = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x7040B0 : 0x9050E0,
+    const matDark = new THREE.MeshStandardMaterial({
+        color: 0xA0A0A0,
         metalness: 0.15,
         roughness: 0.5,
+        transparent: false,
+        opacity: 1.0,
     });
 
-    // Main body - a complex bracket shape
-    // Base block
+    // === Model 1: Mechanical bracket (left side) ===
+    const group1 = new THREE.Group();
+    group1.userData.name = '\u652f\u67b6-1';
+
     const baseGeo = new THREE.BoxGeometry(100, 20, 60);
-    const baseMesh = new THREE.Mesh(baseGeo, matBody);
+    const baseMesh = new THREE.Mesh(baseGeo, matLight);
     baseMesh.position.y = 10;
     baseMesh.castShadow = true;
     baseMesh.receiveShadow = true;
-    group.add(baseMesh);
+    group1.add(baseMesh);
 
-    // Left pillar
     const pillarGeo = new THREE.BoxGeometry(15, 80, 60);
-    const leftPillar = new THREE.Mesh(pillarGeo, matBody);
+    const leftPillar = new THREE.Mesh(pillarGeo, matLight);
     leftPillar.position.set(-42.5, 60, 0);
     leftPillar.castShadow = true;
     leftPillar.receiveShadow = true;
-    group.add(leftPillar);
+    group1.add(leftPillar);
 
-    // Right pillar
-    const rightPillar = new THREE.Mesh(pillarGeo, matBody);
+    const rightPillar = new THREE.Mesh(pillarGeo, matLight);
     rightPillar.position.set(42.5, 60, 0);
     rightPillar.castShadow = true;
     rightPillar.receiveShadow = true;
-    group.add(rightPillar);
+    group1.add(rightPillar);
 
-    // Top bridge
     const bridgeGeo = new THREE.BoxGeometry(100, 15, 60);
-    const bridge = new THREE.Mesh(bridgeGeo, matBody);
+    const bridge = new THREE.Mesh(bridgeGeo, matLight);
     bridge.position.y = 107.5;
     bridge.castShadow = true;
     bridge.receiveShadow = true;
-    group.add(bridge);
+    group1.add(bridge);
 
-    // Cylindrical holes in pillars
     const holeGeo = new THREE.CylinderGeometry(12, 12, 62, 32);
     const holeMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x171A25 : 0xB8BCC6, // gray-900 / gray-200
+        color: isDark ? 0x171A25 : 0x909090,
         metalness: 0.3,
         roughness: 0.7,
     });
@@ -371,49 +374,178 @@ function createDemoModel() {
     const leftHole = new THREE.Mesh(holeGeo, holeMat);
     leftHole.rotation.x = Math.PI / 2;
     leftHole.position.set(-42.5, 60, 0);
-    group.add(leftHole);
+    group1.add(leftHole);
 
     const rightHole = new THREE.Mesh(holeGeo, holeMat);
     rightHole.rotation.x = Math.PI / 2;
     rightHole.position.set(42.5, 60, 0);
-    group.add(rightHole);
+    group1.add(rightHole);
 
-    // Center cylinder on top
     const topCylGeo = new THREE.CylinderGeometry(18, 18, 20, 32);
-    const topCyl = new THREE.Mesh(topCylGeo, matOrange);
+    const topCyl = new THREE.Mesh(topCylGeo, matLight);
     topCyl.position.y = 125;
     topCyl.castShadow = true;
-    group.add(topCyl);
+    group1.add(topCyl);
 
-    // Ribs on the side for detail
     for (let i = 0; i < 3; i++) {
         const ribGeo = new THREE.BoxGeometry(2, 60, 55);
-        const ribMat = new THREE.MeshStandardMaterial({
-            color: isDark ? 0x6B42AD : 0x6422B0,
-            metalness: 0.1,
-            roughness: 0.6,
-        });
-        const rib = new THREE.Mesh(ribGeo, ribMat);
+        const rib = new THREE.Mesh(ribGeo, matLight.clone());
         rib.position.set(-20 + i * 20, 55, 0);
         rib.castShadow = true;
-        group.add(rib);
+        group1.add(rib);
     }
 
-    // Contact shadow (fake, projected on plate)
-    const shadowGeo = new THREE.PlaneGeometry(130, 80);
-    const shadowMat = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        transparent: true,
-        opacity: isDark ? 0.35 : 0.15,
-        depthWrite: false,
-    });
-    const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
-    shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = 0.5;
-    group.add(shadowPlane);
+    group1.position.set(-90, 0, 0);
+    scene.add(group1);
+    models.push(group1);
 
-    model = group;
-    scene.add(model);
+    // === Model 2: L-shaped bracket (right side) ===
+    const group2 = new THREE.Group();
+    group2.userData.name = 'L\u578b\u652f\u67b6-2';
+
+    const lVertGeo = new THREE.BoxGeometry(40, 100, 50);
+    const lVert = new THREE.Mesh(lVertGeo, matDark);
+    lVert.position.set(0, 50, 0);
+    lVert.castShadow = true;
+    lVert.receiveShadow = true;
+    group2.add(lVert);
+
+    const lHorizGeo = new THREE.BoxGeometry(80, 25, 50);
+    const lHoriz = new THREE.Mesh(lHorizGeo, matDark);
+    lHoriz.position.set(20, 12.5, 0);
+    lHoriz.castShadow = true;
+    lHoriz.receiveShadow = true;
+    group2.add(lHoriz);
+
+    const filletGeo = new THREE.CylinderGeometry(15, 15, 50, 32);
+    const fillet = new THREE.Mesh(filletGeo, matDark);
+    fillet.rotation.x = Math.PI / 2;
+    fillet.position.set(10, 35, 0);
+    fillet.castShadow = true;
+    group2.add(fillet);
+
+    const mountGeo = new THREE.CylinderGeometry(6, 6, 26, 24);
+    const mountMat = new THREE.MeshStandardMaterial({
+        color: isDark ? 0x171A25 : 0x787878,
+        metalness: 0.3,
+        roughness: 0.7,
+    });
+    const mount1 = new THREE.Mesh(mountGeo, mountMat);
+    mount1.position.set(40, 12.5, 0);
+    group2.add(mount1);
+    const mount2 = new THREE.Mesh(mountGeo, mountMat);
+    mount2.position.set(0, 12.5, 0);
+    group2.add(mount2);
+
+    const capGeo = new THREE.CylinderGeometry(20, 20, 10, 32);
+    const cap = new THREE.Mesh(capGeo, matDark);
+    cap.position.set(0, 105, 0);
+    cap.castShadow = true;
+    group2.add(cap);
+
+    group2.position.set(100, 0, 20);
+    scene.add(group2);
+    models.push(group2);
+
+    // Default: select first model
+    model = group1;
+    selectModel(group1);
+
+    // === Click selection ===
+    const raycaster = new THREE.Raycaster();
+    const clickMouse = new THREE.Vector2();
+
+    function onClickSelect(event) {
+        // Ignore if dragging (OrbitControls)
+        const rect = renderer.domElement.getBoundingClientRect();
+        clickMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        clickMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(clickMouse, camera);
+
+        let hit = null;
+        for (const m of models) {
+            const intersects = raycaster.intersectObjects(m.children, true);
+            if (intersects.length > 0) {
+                hit = m;
+                break;
+            }
+        }
+
+        if (hit) {
+            selectModel(hit);
+        } else {
+            clearSelection();
+        }
+    }
+
+    renderer.domElement.addEventListener('click', onClickSelect);
+}
+
+function selectModel(m) {
+    if (selectedModel === m) return;
+    clearSelection();
+    selectedModel = m;
+    model = m;
+
+    // White edge outline
+    const outlineGroup = new THREE.Group();
+    outlineGroup.userData.isOutline = true;
+
+    m.children.forEach(function(child) {
+        if (child.isMesh && child.geometry) {
+            var edges = new THREE.EdgesGeometry(child.geometry, 30);
+            var lineMat = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                linewidth: 2,
+                transparent: true,
+                opacity: 0.9,
+            });
+            var wireframe = new THREE.LineSegments(edges, lineMat);
+            wireframe.position.copy(child.position);
+            wireframe.rotation.copy(child.rotation);
+            wireframe.scale.copy(child.scale);
+            outlineGroup.add(wireframe);
+        }
+    });
+
+    m.add(outlineGroup);
+    selectionOutline = outlineGroup;
+
+    // Emissive glow
+    m.children.forEach(function(child) {
+        if (child.isMesh && child.material && !child.userData.isOutline) {
+            child.userData.origEmissive = child.material.emissive ? child.material.emissive.getHex() : 0x000000;
+            child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
+            child.material.emissive = new THREE.Color(0x333333);
+            child.material.emissiveIntensity = 0.3;
+        }
+    });
+
+    if (transformControls && !modelLocked) {
+        transformControls.attach(m);
+    }
+
+    if (typeof updateModelInfoCard === 'function') updateModelInfoCard();
+    if (typeof syncPanelFromModel === 'function') syncPanelFromModel();
+}
+
+function clearSelection() {
+    if (selectedModel && selectionOutline) {
+        selectedModel.remove(selectionOutline);
+        selectionOutline = null;
+
+        selectedModel.children.forEach(function(child) {
+            if (child.isMesh && child.material && child.userData.origEmissive !== undefined) {
+                child.material.emissive = new THREE.Color(child.userData.origEmissive);
+                child.material.emissiveIntensity = child.userData.origEmissiveIntensity;
+            }
+        });
+    }
+    selectedModel = null;
+    if (transformControls) {
+        transformControls.detach();
+    }
 }
 
 function createEnvironment() {
