@@ -688,19 +688,23 @@ window._updateModelInfoCard = (function() {
     }
 
     return function() {
-        if (!model || !elSize) return;
+        var target = selectedModel || model;
+        if (!target || !elSize) return;
         frameCount++;
-        if (frameCount % 15 !== 0) return; // Update every 15 frames
+        if (frameCount % 15 !== 0) return;
 
-        const box = new THREE.Box3().setFromObject(model);
+        var nameEl = document.getElementById('modelInfoName');
+        if (nameEl) nameEl.textContent = target.userData.name || '3D Model';
+
+        const box = new THREE.Box3().setFromObject(target);
         const size = new THREE.Vector3();
         box.getSize(size);
         elSize.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} mm`;
 
-        const triangles = countTriangles(model);
+        const triangles = countTriangles(target);
         elTriangles.textContent = triangles.toLocaleString();
 
-        const volume = estimateVolume(model);
+        const volume = estimateVolume(target);
         if (volume > 1000) {
             elVolume.textContent = (volume / 1000).toFixed(1) + ' cm³';
         } else {
@@ -713,13 +717,14 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
 
-    // Update gizmo dashed lines (translate mode only)
-    if (window._gizmoDashLines && transformControls && model) {
-        const isTranslate = transformControls.visible && transformControls.mode === 'translate';
+    // Update gizmo dashed lines (translate mode only, follows selected model)
+    if (window._gizmoDashLines && transformControls) {
+        const target = selectedModel || model;
+        const isTranslate = transformControls.visible && transformControls.mode === 'translate' && target;
         window._gizmoDashLines.forEach(line => {
             line.visible = isTranslate;
-            if (isTranslate) {
-                line.position.copy(model.position);
+            if (isTranslate && target) {
+                line.position.copy(target.position);
             }
         });
     }
@@ -767,10 +772,13 @@ themeToggle.addEventListener('click', () => {
 });
 
 function rebuildScene() {
-    // Clear scene
+    // Clear scene and reset state
     while (scene.children.length > 0) {
         scene.remove(scene.children[0]);
     }
+    models = [];
+    selectedModel = null;
+    selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
     scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0xB8BCC6, 0.0015);
     scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0xB8BCC6);
