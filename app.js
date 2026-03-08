@@ -307,7 +307,7 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0x707478,
+        color: 0x585C60,
         metalness: 0.05,
         roughness: 0.6,
         transparent: false,
@@ -315,7 +315,7 @@ function createDemoModel() {
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0x606468,
+        color: 0x4E5256,
         metalness: 0.08,
         roughness: 0.6,
         transparent: false,
@@ -454,7 +454,9 @@ function createDemoModel() {
 
         let hit = null;
         for (const m of models) {
-            const intersects = raycaster.intersectObjects(m.children, true);
+            // Filter out outline shells from raycast
+            var meshChildren = m.children.filter(function(c) { return !c.userData.isOutline; });
+            const intersects = raycaster.intersectObjects(meshChildren, true);
             if (intersects.length > 0) {
                 hit = m;
                 break;
@@ -490,7 +492,7 @@ function selectModel(m) {
             var shell = new THREE.Mesh(child.geometry, outlineMat);
             shell.position.copy(child.position);
             shell.rotation.copy(child.rotation);
-            shell.scale.copy(child.scale).multiplyScalar(1.25);
+            shell.scale.copy(child.scale).multiplyScalar(1.08);
             outlineGroup.add(shell);
         }
     });
