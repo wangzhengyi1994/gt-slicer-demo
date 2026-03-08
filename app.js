@@ -2686,7 +2686,7 @@ document.addEventListener('keydown', (e) => {
 // GRID TYPE POPUP
 // ============================================
 (function() {
-    const gridNames = { normal: '正常模式', lines: '线条填充', support: '打印为支撑', adaptive: '自适应' };
+    const gridNames = { normal: '正常模式', lines: '线条填充', support: '修改重叠设置', nolap: '不支持重叠' };
 
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('#gridTypeBtn');
@@ -2718,7 +2718,7 @@ document.addEventListener('keydown', (e) => {
                 } else if (mode === 'support') {
                     gridHelper.visible = true;
                     gridHelper.material.opacity = 0.6;
-                } else if (mode === 'adaptive') {
+                } else if (mode === 'nolap') {
                     gridHelper.visible = true;
                     gridHelper.material.opacity = 0.35;
                 }
