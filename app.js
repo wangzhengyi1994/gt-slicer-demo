@@ -31,8 +31,8 @@ function initThreeJS() {
         scene.fog = new THREE.FogExp2(0x0D0F17, 0.0015);
         scene.background = new THREE.Color(0x0D0F17);
     } else {
-        scene.fog = new THREE.FogExp2(0x6A7880, 0.001);
-        scene.background = new THREE.Color(0x6A7880);
+        scene.fog = new THREE.FogExp2(0x94999F, 0.001);
+        scene.background = new THREE.Color(0x94999F);
     }
 
     // Camera
@@ -56,7 +56,7 @@ function initThreeJS() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.1;
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // Controls
@@ -140,13 +140,13 @@ function createLighting() {
 
     // Strong ambient light for clear visibility
     const ambient = new THREE.AmbientLight(
-        isDark ? 0x555566 : 0xB0B8C8,
-        isDark ? 0.6 : 0.5
+        isDark ? 0x555566 : 0x8890A0,
+        isDark ? 0.6 : 0.4
     );
     scene.add(ambient);
 
     // Main directional light - bright key light
-    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 0.9);
+    const mainLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.0 : 0.85);
     mainLight.position.set(300, 500, 400);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 4096;
@@ -196,22 +196,19 @@ function createBuildPlate() {
 
     // Build plate - light blue-gray like reference, solid and clear
     const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x1A1D25 : 0x383C44,
-        metalness: 0.15,
-        roughness: 0.7,
+        color: isDark ? 0x1A1D25 : 0x2D3038,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
     buildPlate = new THREE.Mesh(plateGeo, plateMaterial);
+    buildPlate.material = new THREE.MeshBasicMaterial({ color: isDark ? 0x1A1D25 : 0x2D3038 });
     buildPlate.position.y = -plateH / 2;
     buildPlate.receiveShadow = true;
     scene.add(buildPlate);
 
     // Border frame
-    const borderMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x101218 : 0x505660,
-        metalness: 0.1,
-        roughness: 0.85,
+    const borderMat = new THREE.MeshBasicMaterial({
+        color: isDark ? 0x101218 : 0x1E2228,
     });
     const borderThickness = 6;
     const borderH = plateH + 1;
@@ -241,7 +238,7 @@ function createBuildPlate() {
     // Corner clips - small rectangular cutout-style blocks at each corner
     const clipW = 16, clipD = 16, clipH = plateH + 2;
     const clipMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x2A2E38 : 0x606870,
+        color: isDark ? 0x2A2E38 : 0x3A3E48,
         metalness: 0.2,
         roughness: 0.7,
     });
@@ -263,10 +260,10 @@ function createBuildPlate() {
     // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = isDark ? 0x4A5060 : 0x505660;
+    const fineGridColor = isDark ? 0x4A5060 : 0x50565E;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
-    fineGrid.material.opacity = 0.5;
+    fineGrid.material.opacity = 0.4;
     fineGrid.material.transparent = true;
     scene.add(fineGrid);
 
@@ -546,9 +543,7 @@ function createEnvironment() {
     // Ground plane with subtle reflectivity
     const groundGeo = new THREE.PlaneGeometry(4000, 4000);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x0D0F17 : 0x505860,
-        metalness: isDark ? 0.1 : 0.15,
-        roughness: isDark ? 0.95 : 0.85,
+        color: isDark ? 0x0D0F17 : 0x6A7078,
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -559,7 +554,7 @@ function createEnvironment() {
     // Gradient fade ring around build plate (environmental depth)
     const fadeRingGeo = new THREE.RingGeometry(280, 800, 64);
     const fadeRingMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x0D0F17 : 0x586068,
+        color: isDark ? 0x0D0F17 : 0x7A8088,
         transparent: true,
         opacity: isDark ? 0.5 : 0.3,
         depthWrite: false,
@@ -772,9 +767,9 @@ function rebuildScene() {
     selectedModel = null;
     selectionOutline = null;
     const isDark = document.body.classList.contains('theme-dark');
-    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0x6A7880, 0.001);
-    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x6A7880);
-    renderer.toneMappingExposure = isDark ? 0.8 : 1.1;
+    scene.fog = new THREE.FogExp2(isDark ? 0x0D0F17 : 0x94999F, 0.001);
+    scene.background = new THREE.Color(isDark ? 0x0D0F17 : 0x94999F);
+    renderer.toneMappingExposure = isDark ? 0.8 : 1.0;
 
     createLighting();
     createBuildPlate();
