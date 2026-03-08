@@ -477,35 +477,32 @@ function selectModel(m) {
     selectedModel = m;
     model = m;
 
-    // Orange-red edge outline (like Bambu Studio selection)
+    // White outline via backface-scaled shells
     const outlineGroup = new THREE.Group();
     outlineGroup.userData.isOutline = true;
+    const outlineMat = new THREE.MeshBasicMaterial({
+        color: 0xFFFFFF,
+        side: THREE.BackSide,
+    });
 
     m.children.forEach(function(child) {
         if (child.isMesh && child.geometry) {
-            var edges = new THREE.EdgesGeometry(child.geometry, 20);
-            var lineMat = new THREE.LineBasicMaterial({
-                color: 0xFFFFFF,
-                linewidth: 2,
-            });
-            var wireframe = new THREE.LineSegments(edges, lineMat);
-            wireframe.position.copy(child.position);
-            wireframe.rotation.copy(child.rotation);
-            wireframe.scale.copy(child.scale);
-            outlineGroup.add(wireframe);
+            var shell = new THREE.Mesh(child.geometry, outlineMat);
+            shell.position.copy(child.position);
+            shell.rotation.copy(child.rotation);
+            shell.scale.copy(child.scale).multiplyScalar(1.04);
+            outlineGroup.add(shell);
         }
     });
 
     m.add(outlineGroup);
     selectionOutline = outlineGroup;
 
-    // Warm tint on selected model
+    // Slight emissive on selected model
     m.children.forEach(function(child) {
         if (child.isMesh && child.material && !child.userData.isOutline) {
-            child.userData.origColor = child.material.color.getHex();
             child.userData.origEmissive = child.material.emissive ? child.material.emissive.getHex() : 0x000000;
             child.userData.origEmissiveIntensity = child.material.emissiveIntensity || 0;
-            // Warm yellow tint like reference
             child.material.emissive = new THREE.Color(0x222222);
             child.material.emissiveIntensity = 0.15;
         }
