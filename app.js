@@ -2716,7 +2716,11 @@ document.addEventListener('keydown', (e) => {
     }
 
     if (layFlatIcon) layFlatIcon.addEventListener('click', layFlat);
-    if (layFlatBtn) layFlatBtn.addEventListener('click', layFlat);
+
+    var alignFaceBtn = document.getElementById('alignFaceBtn');
+    if (alignFaceBtn) alignFaceBtn.addEventListener('click', function() {
+        if (typeof showToast === 'function') showToast('选择要与构建板对齐的面');
+    });
 
     if (snapCheck) snapCheck.addEventListener('change', function() {
         if (typeof transformControls !== 'undefined' && transformControls) {
