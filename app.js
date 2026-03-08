@@ -788,6 +788,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             b.classList.remove('tab-highlight');
         });
         this.classList.add('active');
+        // Show/hide preview bar based on active tab
+        var previewBar = document.getElementById('previewBar');
+        var colorPanel = document.getElementById('colorSchemePanel');
+        var isPreview = this.getAttribute('data-tab-icon') === 'preview';
+        if (previewBar) previewBar.style.display = isPreview ? 'flex' : 'none';
+        if (colorPanel && !isPreview) colorPanel.style.display = 'none';
     });
 });
 
@@ -1257,6 +1263,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
+        var previewBar = document.getElementById('previewBar');
+        var colorPanel = document.getElementById('colorSchemePanel');
+        var isPreview = this.getAttribute('data-tab-icon') === 'preview';
+        if (previewBar) previewBar.style.display = isPreview ? 'flex' : 'none';
+        if (colorPanel && !isPreview) colorPanel.style.display = 'none';
     });
 });
 
