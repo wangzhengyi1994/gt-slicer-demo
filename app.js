@@ -490,7 +490,7 @@ function selectModel(m) {
             var shell = new THREE.Mesh(child.geometry, outlineMat);
             shell.position.copy(child.position);
             shell.rotation.copy(child.rotation);
-            shell.scale.copy(child.scale).multiplyScalar(1.06);
+            shell.scale.copy(child.scale).multiplyScalar(1.12);
             outlineGroup.add(shell);
         }
     });
@@ -548,18 +548,7 @@ function createEnvironment() {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Gradient fade ring around build plate (environmental depth)
-    const fadeRingGeo = new THREE.RingGeometry(280, 800, 64);
-    const fadeRingMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x0D0F17 : 0x7A8088,
-        transparent: true,
-        opacity: isDark ? 0.5 : 0.3,
-        depthWrite: false,
-    });
-    const fadeRing = new THREE.Mesh(fadeRingGeo, fadeRingMat);
-    fadeRing.rotation.x = -Math.PI / 2;
-    fadeRing.position.y = -2.5;
-    scene.add(fadeRing);
+    // Fade ring removed
 
     // Axis indicator lines at origin - thicker visual
     const axisLen = 50;
