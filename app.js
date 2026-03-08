@@ -196,19 +196,19 @@ function createBuildPlate() {
 
     // Build plate - light blue-gray like reference, solid and clear
     const plateMaterial = new THREE.MeshStandardMaterial({
-        color: isDark ? 0x1A1D25 : 0x2D3038,
+        color: isDark ? 0x15161E : 0x15161E,
     });
 
     const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
     buildPlate = new THREE.Mesh(plateGeo, plateMaterial);
-    buildPlate.material = new THREE.MeshBasicMaterial({ color: isDark ? 0x1A1D25 : 0x2D3038 });
+    buildPlate.material = new THREE.MeshBasicMaterial({ color: isDark ? 0x15161E : 0x15161E });
     buildPlate.position.y = -plateH / 2;
     buildPlate.receiveShadow = true;
     scene.add(buildPlate);
 
     // Border frame
     const borderMat = new THREE.MeshBasicMaterial({
-        color: isDark ? 0x101218 : 0x1E2228,
+        color: isDark ? 0x101218 : 0x101218,
     });
     const borderThickness = 6;
     const borderH = plateH + 1;
@@ -260,10 +260,10 @@ function createBuildPlate() {
     // Fine grid only (10mm spacing), very faint
     const fineGridSize = 400;
     const fineGridDivisions = 40;
-    const fineGridColor = isDark ? 0x4A5060 : 0x50565E;
+    const fineGridColor = isDark ? 0x4A5060 : 0xFFFFFF;
     const fineGrid = new THREE.GridHelper(fineGridSize, fineGridDivisions, fineGridColor, fineGridColor);
     fineGrid.position.y = 0.3;
-    fineGrid.material.opacity = 0.4;
+    fineGrid.material.opacity = 0.5;
     fineGrid.material.transparent = true;
     scene.add(fineGrid);
 
@@ -307,7 +307,7 @@ function createDemoModel() {
 
     // Solid opaque materials - light gray like real slicer software
     const matLight = new THREE.MeshStandardMaterial({
-        color: 0xB0B4B8,
+        color: 0xC1C7CF,
         metalness: 0.12,
         roughness: 0.45,
         transparent: false,
@@ -315,7 +315,7 @@ function createDemoModel() {
     });
 
     const matDark = new THREE.MeshStandardMaterial({
-        color: 0xA0A4A8,
+        color: 0xC1C7CF,
         metalness: 0.15,
         roughness: 0.5,
         transparent: false,
