@@ -1580,6 +1580,73 @@ html, body {
     margin: 3px 0;
 }
 
+/* Grid Type Popup */
+.grid-type-popup {
+    position: absolute;
+    left: 60px;
+    bottom: 60px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    z-index: 120;
+    min-width: 200px;
+}
+.grid-type-icons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.grid-type-btn {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    padding: 4px;
+}
+.grid-type-btn:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    background: var(--bg-hover);
+}
+.grid-type-btn.active {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    background: rgba(67, 98, 255, 0.08);
+}
+.grid-type-btn svg {
+    width: 22px;
+    height: 22px;
+}
+.grid-type-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+}
+.grid-type-settings-btn {
+    width: 100%;
+    padding: 6px 0;
+    border: 1px solid var(--border-default);
+    border-radius: 5px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.grid-type-settings-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--brand-primary);
+}
+
 /* Hide old toolbar-left (now replaced) */
 .toolbar-left { display: none; }
 

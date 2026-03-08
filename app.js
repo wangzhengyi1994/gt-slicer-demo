@@ -2683,6 +2683,62 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================
+// GRID TYPE POPUP
+// ============================================
+(function() {
+    const gridNames = { normal: '正常模式', lines: '线条模式', cross: '交叉模式', adaptive: '自适应模式' };
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('#gridTypeBtn');
+        const popup = document.getElementById('gridTypePopup');
+        if (!popup) return;
+
+        if (btn) {
+            popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+            e.stopPropagation();
+            return;
+        }
+
+        const gridBtn = e.target.closest('.grid-type-btn');
+        if (gridBtn) {
+            document.querySelectorAll('.grid-type-btn').forEach(function(b) { b.classList.remove('active'); });
+            gridBtn.classList.add('active');
+            var mode = gridBtn.getAttribute('data-grid');
+            var label = document.getElementById('gridTypeLabel');
+            if (label) label.textContent = '网格类型: ' + (gridNames[mode] || mode);
+
+            // Apply grid style change
+            if (typeof gridHelper !== 'undefined' && gridHelper && gridHelper.material) {
+                if (mode === 'normal') {
+                    gridHelper.visible = true;
+                    gridHelper.material.opacity = 0.45;
+                } else if (mode === 'lines') {
+                    gridHelper.visible = true;
+                    gridHelper.material.opacity = 0.3;
+                } else if (mode === 'cross') {
+                    gridHelper.visible = true;
+                    gridHelper.material.opacity = 0.6;
+                } else if (mode === 'adaptive') {
+                    gridHelper.visible = true;
+                    gridHelper.material.opacity = 0.35;
+                }
+            }
+            return;
+        }
+
+        if (e.target.closest('#gridSettingsBtn')) {
+            if (typeof showToast === 'function') showToast('网格设置功能开发中');
+            return;
+        }
+
+        // Click outside closes popup
+        if (!e.target.closest('.grid-type-popup')) {
+            popup.style.display = 'none';
+        }
+    });
+})();
+
+// ============================================
 // INITIALIZATION
 // ============================================
 if (document.readyState === 'loading') {
