@@ -2818,109 +2818,113 @@ G28 X Y ; Home X Y</textarea>
             display: flex;
             flex-direction: column;
             height: 100%;
-            background: var(--bg-panel, #fff);
-            color: var(--text-primary, #1a1a2e);
+            background: var(--bg-panel);
+            color: var(--text-primary);
         }
         .gcode-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 10px 14px;
-            border-bottom: 1px solid var(--border, #e0e0e0);
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .gcode-title {
             font-size: 13px;
             font-weight: 600;
+            color: var(--text-primary);
         }
         .gcode-close {
             background: none;
             border: none;
             font-size: 18px;
             cursor: pointer;
-            color: var(--text-secondary, #888);
+            color: var(--text-tertiary);
             padding: 0 4px;
             line-height: 1;
         }
-        .gcode-close:hover { color: var(--text-primary, #333); }
+        .gcode-close:hover { color: var(--text-primary); }
 
         .gcode-sub-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 8px 14px;
-            border-bottom: 1px solid var(--border, #e0e0e0);
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .gcode-sub-title {
             font-size: 12px;
             font-weight: 500;
-            color: var(--text-secondary, #666);
+            color: var(--text-secondary);
         }
         .gcode-save-btn {
             font-size: 11px;
             padding: 3px 10px;
-            border: 1px solid var(--border, #ccc);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            background: var(--bg-input, #f5f5f5);
-            color: var(--text-primary, #333);
+            background: var(--bg-input);
+            color: var(--text-primary);
             cursor: pointer;
         }
-        .gcode-save-btn:hover { background: var(--bg-hover, #e8e8e8); }
+        .gcode-save-btn:hover { background: var(--bg-input-focus); }
 
         .gcode-search {
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 14px;
-            border-bottom: 1px solid var(--border, #e0e0e0);
+            gap: 6px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .gcode-search-input {
             flex: 1;
             min-width: 0;
-            font-size: 11px;
-            padding: 4px 8px;
-            border: 1px solid var(--border, #ccc);
-            border-radius: 3px;
-            background: var(--bg-input, #f8f8f8);
-            color: var(--text-primary, #333);
+            font-size: 12px;
+            padding: 5px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-input);
+            color: var(--text-primary);
             outline: none;
         }
-        .gcode-search-input:focus { border-color: var(--accent, #4a86c8); }
+        .gcode-search-input:focus { border-color: var(--primary-6); }
+        .theme-dark .gcode-search-input:focus { border-color: var(--primary-dark-6); }
+        .gcode-search-input::placeholder { color: var(--text-tertiary); }
         .gcode-cc {
             display: flex;
             align-items: center;
             gap: 2px;
             font-size: 11px;
-            color: var(--text-secondary, #888);
+            color: var(--text-tertiary);
             cursor: pointer;
+            flex-shrink: 0;
         }
-        .gcode-cc input { width: 12px; height: 12px; }
+        .gcode-cc input { width: 12px; height: 12px; accent-color: var(--primary-6); }
         .gcode-search-btn {
-            font-size: 10px;
-            padding: 3px 7px;
-            border: 1px solid var(--border, #ccc);
-            border-radius: 3px;
-            background: var(--bg-input, #f5f5f5);
-            color: var(--text-primary, #555);
+            font-size: 11px;
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-input);
+            color: var(--text-secondary);
             cursor: pointer;
             white-space: nowrap;
         }
-        .gcode-search-btn:hover { background: var(--bg-hover, #e8e8e8); }
+        .gcode-search-btn:hover { background: var(--bg-input-focus); color: var(--text-primary); }
 
         .gcode-editor {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            background: var(--bg-code, #1e1e2e);
+            background: var(--bg-input);
             position: relative;
         }
         .gcode-content {
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 11px;
             line-height: 1.6;
-            color: #c8ccd4;
+            color: var(--text-primary);
             padding: 10px 14px;
             margin: 0;
             white-space: pre;
@@ -2929,7 +2933,7 @@ G28 X Y ; Home X Y</textarea>
 
         .gcode-mode-toggle {
             display: flex;
-            border-top: 1px solid var(--border, #e0e0e0);
+            border-top: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .gcode-mode-btn {
@@ -2937,21 +2941,22 @@ G28 X Y ; Home X Y</textarea>
             padding: 7px;
             font-size: 11px;
             border: none;
-            background: var(--bg-input, #f5f5f5);
-            color: var(--text-secondary, #888);
+            background: var(--bg-input);
+            color: var(--text-tertiary);
             cursor: pointer;
             transition: all .15s;
         }
-        .gcode-mode-btn:first-child { border-right: 1px solid var(--border, #e0e0e0); }
+        .gcode-mode-btn:first-child { border-right: 1px solid var(--border-color); }
         .gcode-mode-btn.active {
-            background: var(--accent, #4a86c8);
+            background: var(--primary-6);
             color: #fff;
         }
-        .gcode-mode-btn:hover:not(.active) { background: var(--bg-hover, #e8e8e8); }
+        .theme-dark .gcode-mode-btn.active { background: var(--primary-dark-6); }
+        .gcode-mode-btn:hover:not(.active) { background: var(--bg-input-focus); }
 
         .gcode-footer {
             padding: 10px 14px;
-            border-top: 1px solid var(--border, #e0e0e0);
+            border-top: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .gcode-stats {
@@ -2965,7 +2970,7 @@ G28 X Y ; Home X Y</textarea>
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: var(--text-secondary, #888);
+            color: var(--text-secondary);
         }
         .gcode-stat svg { flex-shrink: 0; }
         .gcode-disk-btn {
@@ -2975,46 +2980,13 @@ G28 X Y ; Home X Y</textarea>
             font-weight: 500;
             border: none;
             border-radius: 6px;
-            background: var(--accent, #4a86c8);
+            background: var(--primary-6);
             color: #fff;
             cursor: pointer;
             transition: background .15s;
         }
+        .theme-dark .gcode-disk-btn { background: var(--primary-dark-6); }
         .gcode-disk-btn:hover { opacity: .9; }
-
-        /* Dark theme overrides for gcode panel */
-        .theme-dark .gcode-panel {
-            background: var(--bg-panel, #15161e);
-            color: #c8ccd4;
-        }
-        .theme-dark .gcode-header,
-        .theme-dark .gcode-sub-header,
-        .theme-dark .gcode-search,
-        .theme-dark .gcode-mode-toggle,
-        .theme-dark .gcode-footer {
-            border-color: rgba(255,255,255,.08);
-        }
-        .theme-dark .gcode-save-btn,
-        .theme-dark .gcode-search-btn {
-            background: rgba(255,255,255,.06);
-            border-color: rgba(255,255,255,.12);
-            color: #aab;
-        }
-        .theme-dark .gcode-search-input {
-            background: rgba(255,255,255,.06);
-            border-color: rgba(255,255,255,.12);
-            color: #c8ccd4;
-        }
-        .theme-dark .gcode-mode-btn {
-            background: rgba(255,255,255,.04);
-            border-color: rgba(255,255,255,.08);
-            color: #889;
-        }
-        .theme-dark .gcode-mode-btn:first-child {
-            border-right-color: rgba(255,255,255,.08);
-        }
-        .theme-dark .gcode-close { color: #667; }
-        .theme-dark .gcode-close:hover { color: #c8ccd4; }
     </style>
     
     <script>
