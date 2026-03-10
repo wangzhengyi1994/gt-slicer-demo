@@ -798,6 +798,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         var prepareSettings = document.getElementById('prepareSettings');
         if (gcodePanel) gcodePanel.style.display = isPreview ? 'flex' : 'none';
         if (prepareSettings) prepareSettings.style.display = isPreview ? 'none' : 'block';
+        if (isPreview) { if (typeof enterSlicePreview === 'function') enterSlicePreview(); }
+        else { if (typeof exitSlicePreview === 'function') exitSlicePreview(); }
     });
 });
 
@@ -1276,6 +1278,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         var prepareSettings = document.getElementById('prepareSettings');
         if (gcodePanel) gcodePanel.style.display = isPreview ? 'flex' : 'none';
         if (prepareSettings) prepareSettings.style.display = isPreview ? 'none' : 'block';
+        if (isPreview) { if (typeof enterSlicePreview === 'function') enterSlicePreview(); }
+        else { if (typeof exitSlicePreview === 'function') exitSlicePreview(); }
     });
 });
 
@@ -2771,6 +2775,9 @@ document.querySelectorAll('.vp-tab').forEach(function(tab) {
         var prepareSettings = document.getElementById('prepareSettings');
         if (gcodePanel) gcodePanel.style.display = isPreview ? 'flex' : 'none';
         if (prepareSettings) prepareSettings.style.display = isPreview ? 'none' : 'block';
+        // Slice preview visualization
+        if (isPreview) { if (typeof enterSlicePreview === 'function') enterSlicePreview(); }
+        else { if (typeof exitSlicePreview === 'function') exitSlicePreview(); }
     });
 });
 
@@ -2878,6 +2885,159 @@ document.querySelectorAll('.vp-tab').forEach(function(tab) {
         }
     });
 })();
+
+// ============================================
+// SLICE PREVIEW VISUALIZATION
+// ============================================
+var slicePreviewActive = false;
+var savedMaterials = new Map(); // store original materials
+var sliceLayerHeight = 0.2; // mm per layer
+var sliceMaxLayer = 199;
+var sliceCurrentLayer = 199;
+
+// Custom ShaderMaterial for slice visualization
+function createSliceShaderMaterial(baseColor, modelHeight) {
+    return new THREE.ShaderMaterial({
+        uniforms: {
+            uColor: { value: new THREE.Color(baseColor) },
+            uWallColor: { value: new THREE.Color(0xE87B35) },   // orange for wall
+            uInfillColor: { value: new THREE.Color(0xD4A843) },  // yellow-orange for infill
+            uLayerHeight: { value: sliceLayerHeight },
+            uMaxZ: { value: modelHeight },
+            uClipZ: { value: modelHeight },
+            uLineWidth: { value: 0.35 },
+        },
+        vertexShader: [
+            'varying vec3 vWorldPos;',
+            'varying vec3 vNormal;',
+            'void main() {',
+            '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+            '  vWorldPos = wp.xyz;',
+            '  vNormal = normalize(normalMatrix * normal);',
+            '  gl_Position = projectionMatrix * viewMatrix * wp;',
+            '}'
+        ].join('\n'),
+        fragmentShader: [
+            'uniform vec3 uColor;',
+            'uniform vec3 uWallColor;',
+            'uniform vec3 uInfillColor;',
+            'uniform float uLayerHeight;',
+            'uniform float uMaxZ;',
+            'uniform float uClipZ;',
+            'uniform float uLineWidth;',
+            'varying vec3 vWorldPos;',
+            'varying vec3 vNormal;',
+            '',
+            'void main() {',
+            '  if (vWorldPos.y > uClipZ) discard;',
+            '',
+            '  float layerScale = uLayerHeight * (uMaxZ / 0.2);',
+            '  float layerPos = mod(vWorldPos.y, layerScale);',
+            '  float layerLine = smoothstep(0.0, 0.8, layerPos) * (1.0 - smoothstep(layerScale - 0.8, layerScale, layerPos));',
+            '',
+            '  // Determine if wall (mostly vertical faces) or infill (horizontal/top faces)',
+            '  float wallFactor = abs(vNormal.y);',
+            '  bool isTopFace = wallFactor > 0.7;',
+            '',
+            '  vec3 color;',
+            '  if (isTopFace) {',
+            '    // Infill: cross-hatch pattern',
+            '    float hatch1 = abs(sin((vWorldPos.x + vWorldPos.z) * 0.8));',
+            '    float hatch2 = abs(sin((vWorldPos.x - vWorldPos.z) * 0.8));',
+            '    float hatch = min(hatch1, hatch2);',
+            '    float hatchLine = smoothstep(0.0, 0.15, hatch);',
+            '    color = mix(uInfillColor * 0.6, uInfillColor, hatchLine);',
+            '  } else {',
+            '    // Wall: layer lines visible',
+            '    color = mix(uWallColor * 0.85, uWallColor, layerLine);',
+            '  }',
+            '',
+            '  // Simple lighting',
+            '  vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));',
+            '  float diff = max(dot(vNormal, lightDir), 0.0) * 0.5 + 0.5;',
+            '  color *= diff;',
+            '',
+            '  // Layer gap lines (dark lines between layers)',
+            '  float gap = 1.0 - smoothstep(0.0, 0.4, layerPos) * (1.0 - smoothstep(layerScale - 0.4, layerScale, layerPos));',
+            '  color = mix(color, color * 0.3, gap * 0.5);',
+            '',
+            '  gl_FragColor = vec4(color, 1.0);',
+            '}'
+        ].join('\n'),
+        side: THREE.DoubleSide,
+    });
+}
+
+function getModelHeight(group) {
+    var box = new THREE.Box3().setFromObject(group);
+    return box.max.y;
+}
+
+function enterSlicePreview() {
+    if (slicePreviewActive) return;
+    slicePreviewActive = true;
+
+    models.forEach(function(group) {
+        var height = getModelHeight(group);
+        sliceMaxLayer = Math.ceil(height / sliceLayerHeight);
+        sliceCurrentLayer = sliceMaxLayer;
+
+        group.traverse(function(child) {
+            if (child.isMesh && !child.userData.isOutline) {
+                savedMaterials.set(child.uuid, child.material);
+                child.material = createSliceShaderMaterial(0x585C60, height);
+            }
+        });
+    });
+
+    // Update slider
+    var slider = document.getElementById('layerSlider');
+    var label = document.getElementById('layerLabel');
+    if (slider) {
+        slider.max = sliceMaxLayer;
+        slider.value = sliceMaxLayer;
+    }
+    if (label) label.textContent = sliceCurrentLayer + ' / ' + sliceMaxLayer;
+
+    var bar = document.getElementById('sliceLayerBar');
+    if (bar) bar.style.display = 'flex';
+}
+
+function exitSlicePreview() {
+    if (!slicePreviewActive) return;
+    slicePreviewActive = false;
+
+    models.forEach(function(group) {
+        group.traverse(function(child) {
+            if (child.isMesh && savedMaterials.has(child.uuid)) {
+                child.material.dispose();
+                child.material = savedMaterials.get(child.uuid);
+            }
+        });
+    });
+    savedMaterials.clear();
+
+    var bar = document.getElementById('sliceLayerBar');
+    if (bar) bar.style.display = 'none';
+}
+
+function updateSliceLayer(layerNum) {
+    sliceCurrentLayer = parseInt(layerNum);
+    var clipZ = sliceCurrentLayer * sliceLayerHeight;
+
+    models.forEach(function(group) {
+        var height = getModelHeight(group);
+        var actualClipZ = (sliceCurrentLayer / sliceMaxLayer) * height;
+        group.traverse(function(child) {
+            if (child.isMesh && child.material.uniforms && child.material.uniforms.uClipZ) {
+                child.material.uniforms.uClipZ.value = actualClipZ;
+            }
+        });
+    });
+
+    var label = document.getElementById('layerLabel');
+    if (label) label.textContent = sliceCurrentLayer + ' / ' + sliceMaxLayer;
+}
 
 // ============================================
 // INITIALIZATION
