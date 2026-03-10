@@ -419,6 +419,133 @@
 
         <!-- Right Side Panel -->
         <div class="lp-process-panel">
+
+            <!-- ═══ G-Code Preview Panel (shown in preview mode) ═══ -->
+            <div class="gcode-panel" id="gcodePanel" style="display:none">
+                <div class="gcode-header">
+                    <span class="gcode-title">G-Code Preview</span>
+                    <button class="gcode-close" onclick="document.getElementById('gcodePanel').style.display='none'">×</button>
+                </div>
+                <div class="gcode-sub-header">
+                    <span class="gcode-sub-title">Generated G-Code</span>
+                    <button class="gcode-save-btn" onclick="if(typeof showToast==='function')showToast('G-Code saved')">Save File</button>
+                </div>
+                <div class="gcode-search">
+                    <input type="text" class="gcode-search-input" placeholder="Find...">
+                    <label class="gcode-cc"><input type="checkbox"><span>Cc</span></label>
+                    <button class="gcode-search-btn">Find</button>
+                    <button class="gcode-search-btn">Prev</button>
+                    <button class="gcode-search-btn">Next</button>
+                </div>
+                <div class="gcode-editor" id="gcodeEditor">
+                    <pre class="gcode-content">;Generated with GT Slicer 2.8.1
+;FLAVOR:Marlin
+;TIME:52380
+;Filament used: 135.42m
+;Layer height: 0.2
+;MINX:68.674
+;MINY:68.674
+;MAXX:231.326
+;MAXY:231.326
+;MINZ:0.2
+;TARGET_MACHINE.NAME:GT Carbon HT440
+
+M140 S60           ;Set bed temp
+M105               ;Report temperatures
+M190 S60           ;Wait for bed temp
+M104 T0 S200       ;Set extruder 0 temp
+M109 T0 S200       ;Wait for extruder temp
+G28                ;Home all axes
+G92 E0             ;Reset extruder
+M82                ;Absolute extrusion
+
+;LAYER_COUNT:199
+;LAYER:0
+G0 F3600 X110.5 Y110.5 Z0.4
+;TYPE:SKIRT
+G1 F1200 X189.5 Y110.5 E3.042
+G1 X189.5 Y189.5 E6.084
+G1 X110.5 Y189.5 E9.126
+G1 X110.5 Y110.8 E12.159
+
+;TYPE:WALL-OUTER
+G0 F3600 X112.1 Y112.1
+G1 F600 X187.9 Y112.1 E15.076
+G1 X187.9 Y187.9 E17.993
+G1 X112.1 Y187.9 E20.91
+G1 X112.1 Y112.4 E23.818
+
+;TYPE:WALL-INNER
+G0 F3600 X112.5 Y112.5
+G1 F900 X187.5 Y112.5 E26.703
+G1 X187.5 Y187.5 E29.588
+G1 X112.5 Y187.5 E32.473
+G1 X112.5 Y112.8 E35.349
+
+;TYPE:FILL
+G0 F3600 X113.2 Y113.2
+G1 F1500 X186.8 Y113.2 E38.182
+G1 F1500 X113.2 Y113.6 E41.015
+G1 F1500 X186.8 Y114.0 E43.848
+
+;LAYER:1
+G0 F3600 Z0.6
+;TYPE:WALL-OUTER
+G1 F600 X112.1 Y112.1 E46.773
+G1 X187.9 Y112.1 E49.69
+G1 X187.9 Y187.9 E52.607
+
+;LAYER:2
+G0 F3600 Z0.8
+G1 F900 X112.1 Y112.1 E55.532
+
+;...
+;LAYER:117
+G0 F3600 Z23.6
+;TYPE:WALL-OUTER
+G1 F600 X125.3 Y125.3 E1847.221
+G1 X174.7 Y125.3 E1849.122
+G1 X174.7 Y174.7 E1851.023
+G1 X125.3 Y174.7 E1852.924
+
+;TYPE:SKIN
+G1 F1200 X126.0 Y126.0 E1854.809
+G1 X174.0 Y126.0 E1856.656
+
+;LAYER:198
+G0 F3600 Z39.8
+;TYPE:WALL-OUTER
+G1 F600 X140.2 Y140.2 E4012.118
+G1 X159.8 Y140.2 E4012.872
+
+G92 E0             ;Reset extruder
+M104 S0            ;Turn off extruder
+M140 S0            ;Turn off bed
+G28 X Y            ;Home X Y
+M84                ;Disable motors
+;End of G-code</pre>
+                </div>
+                <div class="gcode-mode-toggle">
+                    <button class="gcode-mode-btn" onclick="if(typeof showToast==='function')showToast('Custom mode')">‹ Custom</button>
+                    <button class="gcode-mode-btn active" onclick="if(typeof showToast==='function')showToast('Recommended mode')">Recommended ›</button>
+                </div>
+                <div class="gcode-footer">
+                    <div class="gcode-stats">
+                        <div class="gcode-stat">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+                            <span>14 hours 33 minutes</span>
+                        </div>
+                        <div class="gcode-stat">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13V6l5-4 5 4v7H3z"/><path d="M6 13V9h4v4"/></svg>
+                            <span>404g · 135.42m</span>
+                        </div>
+                    </div>
+                    <button class="gcode-disk-btn" onclick="if(typeof showToast==='function')showToast('Saved to disk')">Save to Disk</button>
+                </div>
+            </div>
+
+            <!-- ═══ Prepare Mode Settings (hidden in preview mode) ═══ -->
+            <div id="prepareSettings">
             <!-- Custom Material Panel -->
             <div class="gt-custom-material">
                 <div class="gt-cm-title">Custom Material</div>
@@ -1279,7 +1406,9 @@
                 </div>
             </div>
         </div>
-        </div>
+        </div><!-- /lp-tab-content -->
+        </div><!-- /prepareSettings -->
+        </div><!-- /lp-process-panel -->
     </aside>
 
     </main>
@@ -2683,6 +2812,209 @@ G28 X Y ; Home X Y</textarea>
             flex: 1;
             overflow-y: auto;
         }
+
+        /* ═══ G-Code Preview Panel ═══ */
+        .gcode-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: var(--bg-panel, #fff);
+            color: var(--text-primary, #1a1a2e);
+        }
+        .gcode-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border, #e0e0e0);
+            flex-shrink: 0;
+        }
+        .gcode-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .gcode-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--text-secondary, #888);
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .gcode-close:hover { color: var(--text-primary, #333); }
+
+        .gcode-sub-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border, #e0e0e0);
+            flex-shrink: 0;
+        }
+        .gcode-sub-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary, #666);
+        }
+        .gcode-save-btn {
+            font-size: 11px;
+            padding: 3px 10px;
+            border: 1px solid var(--border, #ccc);
+            border-radius: 4px;
+            background: var(--bg-input, #f5f5f5);
+            color: var(--text-primary, #333);
+            cursor: pointer;
+        }
+        .gcode-save-btn:hover { background: var(--bg-hover, #e8e8e8); }
+
+        .gcode-search {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            border-bottom: 1px solid var(--border, #e0e0e0);
+            flex-shrink: 0;
+        }
+        .gcode-search-input {
+            flex: 1;
+            min-width: 0;
+            font-size: 11px;
+            padding: 4px 8px;
+            border: 1px solid var(--border, #ccc);
+            border-radius: 3px;
+            background: var(--bg-input, #f8f8f8);
+            color: var(--text-primary, #333);
+            outline: none;
+        }
+        .gcode-search-input:focus { border-color: var(--accent, #4a86c8); }
+        .gcode-cc {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 11px;
+            color: var(--text-secondary, #888);
+            cursor: pointer;
+        }
+        .gcode-cc input { width: 12px; height: 12px; }
+        .gcode-search-btn {
+            font-size: 10px;
+            padding: 3px 7px;
+            border: 1px solid var(--border, #ccc);
+            border-radius: 3px;
+            background: var(--bg-input, #f5f5f5);
+            color: var(--text-primary, #555);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .gcode-search-btn:hover { background: var(--bg-hover, #e8e8e8); }
+
+        .gcode-editor {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: var(--bg-code, #1e1e2e);
+            position: relative;
+        }
+        .gcode-content {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #c8ccd4;
+            padding: 10px 14px;
+            margin: 0;
+            white-space: pre;
+            tab-size: 4;
+        }
+
+        .gcode-mode-toggle {
+            display: flex;
+            border-top: 1px solid var(--border, #e0e0e0);
+            flex-shrink: 0;
+        }
+        .gcode-mode-btn {
+            flex: 1;
+            padding: 7px;
+            font-size: 11px;
+            border: none;
+            background: var(--bg-input, #f5f5f5);
+            color: var(--text-secondary, #888);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .gcode-mode-btn:first-child { border-right: 1px solid var(--border, #e0e0e0); }
+        .gcode-mode-btn.active {
+            background: var(--accent, #4a86c8);
+            color: #fff;
+        }
+        .gcode-mode-btn:hover:not(.active) { background: var(--bg-hover, #e8e8e8); }
+
+        .gcode-footer {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border, #e0e0e0);
+            flex-shrink: 0;
+        }
+        .gcode-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .gcode-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary, #888);
+        }
+        .gcode-stat svg { flex-shrink: 0; }
+        .gcode-disk-btn {
+            width: 100%;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            background: var(--accent, #4a86c8);
+            color: #fff;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .gcode-disk-btn:hover { opacity: .9; }
+
+        /* Dark theme overrides for gcode panel */
+        .theme-dark .gcode-panel {
+            background: var(--bg-panel, #15161e);
+            color: #c8ccd4;
+        }
+        .theme-dark .gcode-header,
+        .theme-dark .gcode-sub-header,
+        .theme-dark .gcode-search,
+        .theme-dark .gcode-mode-toggle,
+        .theme-dark .gcode-footer {
+            border-color: rgba(255,255,255,.08);
+        }
+        .theme-dark .gcode-save-btn,
+        .theme-dark .gcode-search-btn {
+            background: rgba(255,255,255,.06);
+            border-color: rgba(255,255,255,.12);
+            color: #aab;
+        }
+        .theme-dark .gcode-search-input {
+            background: rgba(255,255,255,.06);
+            border-color: rgba(255,255,255,.12);
+            color: #c8ccd4;
+        }
+        .theme-dark .gcode-mode-btn {
+            background: rgba(255,255,255,.04);
+            border-color: rgba(255,255,255,.08);
+            color: #889;
+        }
+        .theme-dark .gcode-mode-btn:first-child {
+            border-right-color: rgba(255,255,255,.08);
+        }
+        .theme-dark .gcode-close { color: #667; }
+        .theme-dark .gcode-close:hover { color: #c8ccd4; }
     </style>
     
     <script>

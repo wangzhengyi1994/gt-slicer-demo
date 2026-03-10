@@ -794,6 +794,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         var isPreview = this.getAttribute('data-tab-icon') === 'preview';
         if (previewBar) previewBar.style.display = isPreview ? 'flex' : 'none';
         if (colorPanel && !isPreview) colorPanel.style.display = 'none';
+        var gcodePanel = document.getElementById('gcodePanel');
+        var prepareSettings = document.getElementById('prepareSettings');
+        if (gcodePanel) gcodePanel.style.display = isPreview ? 'flex' : 'none';
+        if (prepareSettings) prepareSettings.style.display = isPreview ? 'none' : 'block';
     });
 });
 
@@ -1268,6 +1272,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         var isPreview = this.getAttribute('data-tab-icon') === 'preview';
         if (previewBar) previewBar.style.display = isPreview ? 'flex' : 'none';
         if (colorPanel && !isPreview) colorPanel.style.display = 'none';
+        var gcodePanel = document.getElementById('gcodePanel');
+        var prepareSettings = document.getElementById('prepareSettings');
+        if (gcodePanel) gcodePanel.style.display = isPreview ? 'flex' : 'none';
+        if (prepareSettings) prepareSettings.style.display = isPreview ? 'none' : 'block';
     });
 });
 
@@ -2758,6 +2766,11 @@ document.querySelectorAll('.vp-tab').forEach(function(tab) {
         var isPreview = this.getAttribute('data-tab-icon') === 'preview';
         if (previewBar) previewBar.style.display = isPreview ? 'flex' : 'none';
         if (colorPanel && !isPreview) colorPanel.style.display = 'none';
+        // Toggle right panel: G-Code vs Prepare settings
+        var gcodePanel = document.getElementById('gcodePanel');
+        var prepareSettings = document.getElementById('prepareSettings');
+        if (gcodePanel) gcodePanel.style.display = isPreview ? 'flex' : 'none';
+        if (prepareSettings) prepareSettings.style.display = isPreview ? 'none' : 'block';
     });
 });
 
