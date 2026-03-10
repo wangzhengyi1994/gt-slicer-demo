@@ -423,19 +423,19 @@
             <!-- ═══ G-Code Preview Panel (shown in preview mode) ═══ -->
             <div class="gcode-panel" id="gcodePanel" style="display:none">
                 <div class="gcode-header">
-                    <span class="gcode-title">G-Code Preview</span>
+                    <span class="gcode-title">G-Code 预览</span>
                     <button class="gcode-close" onclick="document.getElementById('gcodePanel').style.display='none'">×</button>
                 </div>
                 <div class="gcode-sub-header">
-                    <span class="gcode-sub-title">Generated G-Code</span>
-                    <button class="gcode-save-btn" onclick="if(typeof showToast==='function')showToast('G-Code saved')">Save File</button>
+                    <span class="gcode-sub-title">生成的 G-Code</span>
+                    <button class="gcode-save-btn" onclick="if(typeof showToast==='function')showToast('文件已保存')">保存文件</button>
                 </div>
                 <div class="gcode-search">
-                    <input type="text" class="gcode-search-input" placeholder="Find...">
-                    <label class="gcode-cc"><input type="checkbox"><span>Cc</span></label>
-                    <button class="gcode-search-btn">Find</button>
-                    <button class="gcode-search-btn">Prev</button>
-                    <button class="gcode-search-btn">Next</button>
+                    <input type="text" class="gcode-search-input" placeholder="搜索...">
+                    <label class="gcode-cc"><input type="checkbox"><span>区分大小写</span></label>
+                    <button class="gcode-search-btn">查找</button>
+                    <button class="gcode-search-btn">上一个</button>
+                    <button class="gcode-search-btn">下一个</button>
                 </div>
                 <div class="gcode-editor" id="gcodeEditor">
                     <pre class="gcode-content">;Generated with GT Slicer 2.8.1
@@ -526,21 +526,21 @@ M84                ;Disable motors
 ;End of G-code</pre>
                 </div>
                 <div class="gcode-mode-toggle">
-                    <button class="gcode-mode-btn" onclick="if(typeof showToast==='function')showToast('Custom mode')">‹ Custom</button>
-                    <button class="gcode-mode-btn active" onclick="if(typeof showToast==='function')showToast('Recommended mode')">Recommended ›</button>
+                    <button class="gcode-mode-btn" onclick="if(typeof showToast==='function')showToast('自定义模式')">‹ 自定义</button>
+                    <button class="gcode-mode-btn active" onclick="if(typeof showToast==='function')showToast('推荐模式')">推荐 ›</button>
                 </div>
                 <div class="gcode-footer">
                     <div class="gcode-stats">
                         <div class="gcode-stat">
                             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
-                            <span>14 hours 33 minutes</span>
+                            <span>14 小时 33 分钟</span>
                         </div>
                         <div class="gcode-stat">
                             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13V6l5-4 5 4v7H3z"/><path d="M6 13V9h4v4"/></svg>
                             <span>404g · 135.42m</span>
                         </div>
                     </div>
-                    <button class="gcode-disk-btn" onclick="if(typeof showToast==='function')showToast('Saved to disk')">Save to Disk</button>
+                    <button class="gcode-disk-btn" onclick="if(typeof showToast==='function')showToast('已保存到本地')">保存到本地</button>
                 </div>
             </div>
 
