@@ -580,10 +580,25 @@ M84                ;Disable motors
 
             <!-- Printer Header -->
             <div class="gt-header">
-                <div class="gt-header-title">
-                    <span>打印设置</span>
-                    <button class="gt-header-close">×</button>
+                <!-- 打印机选择器 -->
+                <div class="gt-printer-sel">
+                    <div class="gt-printer-left">
+                        <svg class="gt-printer-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="7" width="16" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+                            <path d="M5 7V5a1 1 0 011-1h8a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.4"/>
+                            <rect x="6" y="11" width="8" height="4" rx="0.5" fill="currentColor" opacity="0.15"/>
+                            <circle cx="14.5" cy="9.5" r="1" fill="currentColor"/>
+                        </svg>
+                        <select class="gt-printer-name-sel">
+                            <option selected>GT Carbon HT440</option>
+                            <option>GT Carbon S800</option>
+                            <option>GT HCF 600</option>
+                        </select>
+                    </div>
+                    <button class="gt-header-close" title="关闭">×</button>
                 </div>
+
+                <!-- 配置文件 -->
                 <div class="gt-header-profile">
                     <span class="gt-profile-label">配置文件</span>
                     <select class="gt-profile-select">
@@ -594,18 +609,33 @@ M84                ;Disable motors
                     </select>
                     <button class="gt-profile-star" title="收藏">☆</button>
                 </div>
-                <!-- Extruder Tabs ①②③ -->
-                <div class="gt-ext-tabs">
-                    <div class="gt-ext-tab active" data-ext="1">
-                        <span class="gt-ext-num">①</span>
+
+                <!-- 喷头标签页 (JS 渲染) -->
+                <div class="gt-ext-tabs" id="extTabs"></div>
+
+                <!-- 材料 + 喷嘴快速配置 -->
+                <div class="gt-mat-config" id="matConfig">
+                    <div class="gt-mat-row">
+                        <span class="gt-mat-label">材料</span>
+                        <select class="gt-mat-sel" id="matSel">
+                            <option selected>BF ABS SkyBlue</option>
+                            <option>Generic PLA</option>
+                            <option>Generic PETG</option>
+                            <option>PA-CF</option>
+                            <option>TPU 95A</option>
+                            <option>PLA-CF</option>
+                        </select>
+                        <span class="gt-mat-label">喷嘴启用</span>
+                        <label class="gt-mat-toggle">
+                            <input type="checkbox" id="nozzleEnable" checked>
+                            <span class="gt-mat-slider"></span>
+                        </label>
                     </div>
-                    <div class="gt-ext-tab" data-ext="2">
-                        <span class="gt-ext-num">②</span>
-                    </div>
-                    <div class="gt-ext-tab" data-ext="3">
-                        <span class="gt-ext-num">③</span>
+                    <div class="gt-nozzle-section" id="nozzleSection">
+                        <!-- 喷嘴行 (JS 渲染) -->
                     </div>
                 </div>
+
                 <!-- Search -->
                 <div class="gt-search-row">
                     <svg class="gt-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
@@ -2870,101 +2900,321 @@ G28 X Y ; Home X Y</textarea>
 
     <!-- GT Header Styles -->
     <style>
-        .gt-header {
+        .gt-header { border-bottom: 1px solid var(--border-color, #eee); }
+
+        /* 打印机选择器 */
+        .gt-printer-sel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px 10px 14px;
             border-bottom: 1px solid var(--border-color, #eee);
         }
-        .gt-header-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 14px 8px;
-            font-size: 14px;
+        .gt-printer-left { display: flex; align-items: center; gap: 8px; }
+        .gt-printer-icon { width: 18px; height: 18px; color: var(--text-secondary, #888); flex-shrink: 0; }
+        .gt-printer-name-sel {
+            background: none;
+            border: none;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0 center;
+            padding-right: 14px;
         }
+        .gt-printer-name-sel:focus { outline: none; }
         .gt-header-close {
             background: none; border: none; font-size: 18px;
-            cursor: pointer; color: var(--text-tertiary); padding: 0 4px;
+            cursor: pointer; color: var(--text-tertiary); padding: 0 4px; line-height: 1;
         }
         .gt-header-close:hover { color: var(--text-primary); }
+
+        /* 配置文件行 */
         .gt-header-profile {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 14px 10px;
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border-color, #eee);
         }
-        .gt-profile-label { font-size: 12px; color: var(--text-secondary); }
+        .gt-profile-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
         .gt-profile-select {
-            flex: 1;
-            padding: 4px 8px;
+            flex: 1; padding: 4px 8px;
             border: 1px solid var(--border-color, #ddd);
             border-radius: 4px;
             background: var(--bg-panel, #fff);
-            color: var(--text-primary);
-            font-size: 12px;
+            color: var(--text-primary); font-size: 12px;
         }
         .gt-profile-star {
             background: none; border: none;
-            font-size: 16px; cursor: pointer;
-            color: var(--text-tertiary);
+            font-size: 16px; cursor: pointer; color: var(--text-tertiary);
         }
         .gt-profile-star:hover { color: #E6A817; }
+
+        /* 喷头标签页 */
         .gt-ext-tabs {
             display: flex;
-            border-top: 1px solid var(--border-color, #eee);
             border-bottom: 1px solid var(--border-color, #eee);
         }
         .gt-ext-tab {
             flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 8px 0;
+            gap: 4px;
+            padding: 9px 4px 8px;
             cursor: pointer;
-            font-size: 18px;
-            color: var(--text-tertiary);
             border-bottom: 2px solid transparent;
             transition: all 0.15s;
+            min-width: 0;
+            position: relative;
         }
-        .gt-ext-tab:hover { color: var(--brand-orange, #7B2FD4); background: rgba(123,47,212,0.03); }
-        .gt-ext-tab.active {
-            color: var(--brand-orange, #7B2FD4);
-            border-bottom-color: var(--brand-orange, #7B2FD4);
+        .gt-ext-tab + .gt-ext-tab { border-left: 1px solid var(--border-color, #eee); }
+        .gt-ext-tab:hover { background: rgba(123,47,212,0.03); }
+        .gt-ext-tab.active { border-bottom-color: var(--brand-orange, #7B2FD4); background: rgba(123,47,212,0.04); }
+        .gt-ext-spool {
+            width: 18px; height: 18px;
+            color: var(--text-tertiary, #bbb);
+            flex-shrink: 0;
+            transition: color 0.15s;
         }
-        .gt-ext-num { pointer-events: none; }
+        .gt-ext-tab.active .gt-ext-spool { color: var(--brand-orange, #7B2FD4); }
+        .gt-ext-badge {
+            width: 18px; height: 18px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            color: #fff; flex-shrink: 0;
+        }
+        .gt-ext-matname {
+            font-size: 10px;
+            color: var(--text-secondary, #888);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .gt-ext-tab.active .gt-ext-matname { color: var(--text-primary); }
+
+        /* 材料 + 喷嘴快速配置 */
+        .gt-mat-config {
+            border-bottom: 1px solid var(--border-color, #eee);
+            padding: 8px 14px 10px;
+        }
+        .gt-mat-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 7px;
+        }
+        .gt-mat-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+        .gt-mat-sel {
+            flex: 1; min-width: 0;
+            padding: 4px 6px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            background: var(--bg-panel, #fff);
+            color: var(--text-primary); font-size: 12px;
+        }
+        /* Toggle switch */
+        .gt-mat-toggle { position: relative; display: inline-flex; cursor: pointer; flex-shrink: 0; }
+        .gt-mat-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .gt-mat-slider {
+            display: block; width: 32px; height: 18px;
+            background: var(--border-color, #ccc);
+            border-radius: 9px; transition: background 0.2s;
+            position: relative;
+        }
+        .gt-mat-slider::after {
+            content: ''; position: absolute;
+            width: 14px; height: 14px;
+            background: #fff; border-radius: 50%;
+            top: 2px; left: 2px;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .gt-mat-toggle input:checked + .gt-mat-slider { background: var(--brand-orange, #7B2FD4); }
+        .gt-mat-toggle input:checked + .gt-mat-slider::after { transform: translateX(14px); }
+
+        /* 喷嘴行 */
+        .gt-nozzle-section { display: flex; flex-direction: column; gap: 5px; }
+        .gt-nozzle-row {
+            display: flex; align-items: center; gap: 7px;
+        }
+        .gt-nozzle-label { font-size: 12px; color: var(--text-secondary); width: 36px; flex-shrink: 0; }
+        .gt-nozzle-diam {
+            flex: 1; min-width: 0;
+            padding: 4px 6px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            background: var(--bg-panel, #fff);
+            color: var(--text-primary); font-size: 12px;
+        }
+        .gt-nozzle-ctrl {
+            width: 24px; height: 24px;
+            background: none;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 50%;
+            font-size: 14px; line-height: 1;
+            cursor: pointer; color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.15s;
+        }
+        .gt-nozzle-ctrl.minus:hover { border-color: #e74c3c; color: #e74c3c; }
+        .gt-nozzle-ctrl.plus:hover { border-color: var(--brand-orange, #7B2FD4); color: var(--brand-orange, #7B2FD4); }
+        .gt-nozzle-ctrl:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+        /* 搜索栏 */
         .gt-search-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            display: flex; align-items: center; gap: 6px;
             padding: 8px 14px;
             border-bottom: 1px solid var(--border-color, #eee);
         }
         .gt-search-icon { width: 14px; height: 14px; opacity: 0.4; flex-shrink: 0; }
         .gt-search-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 12px;
-            color: var(--text-primary);
-            outline: none;
+            flex: 1; border: none; background: transparent;
+            font-size: 12px; color: var(--text-primary); outline: none;
         }
         .gt-search-input::placeholder { color: var(--text-tertiary); }
         .gt-search-menu {
             background: none; border: none;
-            font-size: 14px; cursor: pointer;
-            color: var(--text-tertiary);
+            font-size: 14px; cursor: pointer; color: var(--text-tertiary);
         }
         .gt-search-menu:hover { color: var(--text-primary); }
     </style>
     <script>
-        // Extruder tab click - switches active tab (联动参数列表)
-        document.querySelectorAll('.gt-ext-tab').forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.gt-ext-tab').forEach(function(t) { t.classList.remove('active'); });
-                tab.classList.add('active');
-                // Future: switch parameter values based on tab.dataset.ext
+    (function() {
+        var MATERIALS = ['BF ABS SkyBlue','Generic PLA','Generic PETG','PA-CF','TPU 95A','PLA-CF','ABS','HIPS'];
+        var NOZZLE_SIZES = ['0.2mm','0.3mm','0.4mm','0.5mm','0.6mm','0.8mm','1.0mm'];
+        var BADGE_COLORS = ['#27ae60','#f1c40f','#e08e0b','#e74c3c','#2980b9','#8e44ad','#1abc9c','#e67e22'];
+
+        // 每个喷头的状态
+        var extState = [
+            { material: 'BF ABS SkyBlue', nozzleEnabled: true, nozzles: ['0.4mm'] },
+            { material: 'Generic PLA',    nozzleEnabled: true, nozzles: ['0.4mm'] },
+            { material: 'Generic PETG',   nozzleEnabled: true, nozzles: ['0.4mm'] }
+        ];
+        var activeExt = 0;
+
+        // ── 渲染标签页 ──
+        function renderTabs() {
+            var container = document.getElementById('extTabs');
+            if (!container) return;
+            container.innerHTML = '';
+            extState.forEach(function(st, i) {
+                var tab = document.createElement('div');
+                tab.className = 'gt-ext-tab' + (i === activeExt ? ' active' : '');
+                tab.setAttribute('data-ext', i);
+
+                // 线圈图标
+                tab.innerHTML = '<svg class="gt-ext-spool" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="1.2" fill="currentColor"/></svg>'
+                    + '<span class="gt-ext-badge" style="background:' + BADGE_COLORS[i % BADGE_COLORS.length] + '">' + (i+1) + '</span>'
+                    + '<span class="gt-ext-matname">' + st.material + '</span>';
+
+                tab.addEventListener('click', function() {
+                    activeExt = i;
+                    renderTabs();
+                    renderMatConfig();
+                });
+                container.appendChild(tab);
             });
-        });
+        }
+
+        // ── 渲染材料+喷嘴配置 ──
+        function renderMatConfig() {
+            var st = extState[activeExt];
+
+            // 材料下拉
+            var matSel = document.getElementById('matSel');
+            if (matSel) {
+                matSel.innerHTML = '';
+                MATERIALS.forEach(function(m) {
+                    var o = document.createElement('option');
+                    o.value = m; o.textContent = m;
+                    if (m === st.material) o.selected = true;
+                    matSel.appendChild(o);
+                });
+                matSel.onchange = function() {
+                    extState[activeExt].material = matSel.value;
+                    renderTabs();
+                };
+            }
+
+            // 喷嘴启用 toggle
+            var toggle = document.getElementById('nozzleEnable');
+            var section = document.getElementById('nozzleSection');
+            if (toggle) {
+                toggle.checked = st.nozzleEnabled;
+                toggle.onchange = function() {
+                    extState[activeExt].nozzleEnabled = toggle.checked;
+                    if (section) section.style.display = toggle.checked ? '' : 'none';
+                };
+                if (section) section.style.display = st.nozzleEnabled ? '' : 'none';
+            }
+
+            // 喷嘴行
+            renderNozzleRows();
+        }
+
+        function renderNozzleRows() {
+            var section = document.getElementById('nozzleSection');
+            if (!section) return;
+            var st = extState[activeExt];
+            section.innerHTML = '';
+            st.nozzles.forEach(function(diam, ni) {
+                var row = document.createElement('div');
+                row.className = 'gt-nozzle-row';
+
+                var label = document.createElement('span');
+                label.className = 'gt-nozzle-label';
+                label.textContent = '喷嘴' + (ni + 1);
+
+                var sel = document.createElement('select');
+                sel.className = 'gt-nozzle-diam';
+                NOZZLE_SIZES.forEach(function(s) {
+                    var o = document.createElement('option');
+                    o.value = s; o.textContent = s;
+                    if (s === diam) o.selected = true;
+                    sel.appendChild(o);
+                });
+                sel.onchange = function() { extState[activeExt].nozzles[ni] = sel.value; };
+
+                var minus = document.createElement('button');
+                minus.className = 'gt-nozzle-ctrl minus';
+                minus.title = '移除此喷嘴';
+                minus.innerHTML = '&#8854;';
+                if (st.nozzles.length <= 1) minus.disabled = true;
+                minus.onclick = function() {
+                    if (extState[activeExt].nozzles.length <= 1) return;
+                    extState[activeExt].nozzles.splice(ni, 1);
+                    renderNozzleRows();
+                };
+
+                var plus = document.createElement('button');
+                plus.className = 'gt-nozzle-ctrl plus';
+                plus.title = '添加喷嘴直径';
+                plus.innerHTML = '&#8853;';
+                // 只在最后一行显示 +
+                plus.style.visibility = (ni === st.nozzles.length - 1) ? 'visible' : 'hidden';
+                plus.onclick = function() {
+                    extState[activeExt].nozzles.push('0.4mm');
+                    renderNozzleRows();
+                };
+
+                row.appendChild(label);
+                row.appendChild(sel);
+                row.appendChild(minus);
+                row.appendChild(plus);
+                section.appendChild(row);
+            });
+        }
+
+        // ── 初始化 ──
+        renderTabs();
+        renderMatConfig();
+    })();
     </script>
 
     <!-- Left Panel Tab Navigation -->
