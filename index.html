@@ -3196,10 +3196,8 @@ G28 X Y ; Home X Y</textarea>
                 plus.className = 'gt-nozzle-ctrl plus';
                 plus.title = '添加喷嘴直径';
                 plus.innerHTML = '&#8853;';
-                // 只在最后一行显示 +
-                plus.style.visibility = (ni === st.nozzles.length - 1) ? 'visible' : 'hidden';
                 plus.onclick = function() {
-                    extState[activeExt].nozzles.push('0.4mm');
+                    extState[activeExt].nozzles.splice(ni + 1, 0, '0.4mm');
                     renderNozzleRows();
                 };
 
