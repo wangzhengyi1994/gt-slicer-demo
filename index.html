@@ -566,17 +566,50 @@ M84                ;Disable motors
                 <div class="gt-cm-body" data-cmext="1">
                     <div class="gt-cm-row"><span>已启用</span><label class="gt-cm-check"><input type="checkbox" checked data-cm-enable="1"><span class="gt-cm-checkmark"></span></label></div>
                     <div class="gt-cm-row"><span>材料</span><select class="gt-cm-sel" data-cm-field="1"><option>empty</option><option selected>BF ABS SkyBlue</option><option>Generic PLA</option><option>Generic PETG</option><option>PA-CF</option><option>TPU 95A</option></select></div>
-                    <div class="gt-cm-row"><span>喷嘴</span><select class="gt-cm-sel" data-cm-field="1"><option>empty</option><option>0.2 mm</option><option selected>0.4 mm</option><option>0.6 mm</option><option>0.8 mm</option></select></div>
+                    <div class="gt-cm-row gt-cm-nozzle-wrapper">
+                        <span>喷嘴</span>
+                        <div class="gt-nozzle-right">
+                            <div class="gt-nozzle-list">
+                                <div class="gt-nozzle-item">
+                                    <select class="gt-cm-sel gt-nozzle-sel"><option>0.2 mm</option><option selected>0.4 mm</option><option>0.6 mm</option><option>0.8 mm</option></select>
+                                    <button class="gt-nozzle-rm" title="移除此喷嘴">−</button>
+                                </div>
+                            </div>
+                            <button class="gt-nozzle-add" title="添加喷嘴直径">+ 添加</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="gt-cm-body" data-cmext="2" style="display:none">
                     <div class="gt-cm-row"><span>已启用</span><label class="gt-cm-check"><input type="checkbox" data-cm-enable="2"><span class="gt-cm-checkmark"></span></label></div>
                     <div class="gt-cm-row gt-cm-disabled"><span>材料</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>Generic PLA</option><option>Generic PETG</option><option>PA-CF</option></select></div>
-                    <div class="gt-cm-row gt-cm-disabled"><span>喷嘴</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>0.2 mm</option><option>0.4 mm</option><option>0.6 mm</option></select></div>
+                    <div class="gt-cm-row gt-cm-nozzle-wrapper gt-cm-disabled">
+                        <span>喷嘴</span>
+                        <div class="gt-nozzle-right">
+                            <div class="gt-nozzle-list">
+                                <div class="gt-nozzle-item">
+                                    <select class="gt-cm-sel gt-nozzle-sel" disabled><option>0.2 mm</option><option selected>0.4 mm</option><option>0.6 mm</option><option>0.8 mm</option></select>
+                                    <button class="gt-nozzle-rm" title="移除此喷嘴">−</button>
+                                </div>
+                            </div>
+                            <button class="gt-nozzle-add" title="添加喷嘴直径">+ 添加</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="gt-cm-body" data-cmext="3" style="display:none">
                     <div class="gt-cm-row"><span>已启用</span><label class="gt-cm-check"><input type="checkbox" data-cm-enable="3"><span class="gt-cm-checkmark"></span></label></div>
                     <div class="gt-cm-row gt-cm-disabled"><span>材料</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>Generic PLA</option><option>Generic PETG</option><option>PA-CF</option></select></div>
-                    <div class="gt-cm-row gt-cm-disabled"><span>喷嘴</span><select class="gt-cm-sel" disabled><option selected>empty</option><option>0.2 mm</option><option>0.4 mm</option><option>0.6 mm</option></select></div>
+                    <div class="gt-cm-row gt-cm-nozzle-wrapper gt-cm-disabled">
+                        <span>喷嘴</span>
+                        <div class="gt-nozzle-right">
+                            <div class="gt-nozzle-list">
+                                <div class="gt-nozzle-item">
+                                    <select class="gt-cm-sel gt-nozzle-sel" disabled><option>0.2 mm</option><option selected>0.4 mm</option><option>0.6 mm</option><option>0.8 mm</option></select>
+                                    <button class="gt-nozzle-rm" title="移除此喷嘴">−</button>
+                                </div>
+                            </div>
+                            <button class="gt-nozzle-add" title="添加喷嘴直径">+ 添加</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -2626,6 +2659,38 @@ G28 X Y ; Home X Y</textarea>
         .gt-cm-check input:checked + .gt-cm-checkmark { background: var(--brand-orange, #7B2FD4); border-color: var(--brand-orange, #7B2FD4); }
         .gt-cm-check input:checked + .gt-cm-checkmark::after { content: '✓'; position: absolute; top: -2px; left: 2px; color: #fff; font-size: 12px; }
         .gt-cm-check input { display: none; }
+
+        /* 喷嘴动态列表 */
+        .gt-cm-nozzle-wrapper { align-items: flex-start; padding-top: 8px; }
+        .gt-nozzle-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+        .gt-nozzle-list { display: flex; flex-direction: column; gap: 4px; }
+        .gt-nozzle-item { display: flex; align-items: center; gap: 6px; }
+        .gt-nozzle-rm {
+            width: 22px; height: 22px;
+            background: none;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px; line-height: 1;
+            color: var(--text-secondary, #888);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .gt-nozzle-rm:hover { border-color: #e74c3c; color: #e74c3c; }
+        .gt-nozzle-rm.gt-nozzle-hidden { visibility: hidden; pointer-events: none; }
+        .gt-nozzle-add {
+            background: none;
+            border: 1px dashed var(--border-color, #ddd);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-tertiary, #aaa);
+            padding: 3px 10px;
+            transition: border-color 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        .gt-nozzle-add:hover { border-color: var(--brand-orange, #f60); color: var(--brand-orange, #f60); }
     </style>
     <script>
         // Custom Material tab switching
@@ -2639,6 +2704,7 @@ G28 X Y ; Home X Y</textarea>
                 });
             });
         });
+
         // Enable/disable toggle - grays out material/nozzle when unchecked
         document.querySelectorAll('[data-cm-enable]').forEach(function(cb) {
             cb.addEventListener('change', function() {
@@ -2654,6 +2720,68 @@ G28 X Y ; Home X Y</textarea>
                     }
                 }
             });
+        });
+
+        // 喷嘴直径动态增减
+        var NOZZLE_OPTIONS = ['0.2 mm', '0.3 mm', '0.4 mm', '0.5 mm', '0.6 mm', '0.8 mm', '1.0 mm'];
+
+        function refreshNozzleRemoveBtns(list) {
+            var items = list.querySelectorAll('.gt-nozzle-item');
+            items.forEach(function(item) {
+                var btn = item.querySelector('.gt-nozzle-rm');
+                if (items.length <= 1) {
+                    btn.classList.add('gt-nozzle-hidden');
+                } else {
+                    btn.classList.remove('gt-nozzle-hidden');
+                }
+            });
+        }
+
+        function makeNozzleItem(defaultVal, disabled) {
+            var item = document.createElement('div');
+            item.className = 'gt-nozzle-item';
+            var sel = document.createElement('select');
+            sel.className = 'gt-cm-sel gt-nozzle-sel';
+            if (disabled) sel.disabled = true;
+            NOZZLE_OPTIONS.forEach(function(opt) {
+                var o = document.createElement('option');
+                o.textContent = opt;
+                if (opt === defaultVal) o.selected = true;
+                sel.appendChild(o);
+            });
+            var rm = document.createElement('button');
+            rm.className = 'gt-nozzle-rm';
+            rm.title = '移除此喷嘴';
+            rm.textContent = '−';
+            item.appendChild(sel);
+            item.appendChild(rm);
+            return item;
+        }
+
+        document.querySelectorAll('.gt-nozzle-add').forEach(function(addBtn) {
+            addBtn.addEventListener('click', function() {
+                var wrapper = addBtn.closest('.gt-cm-nozzle-wrapper');
+                var isDisabled = wrapper.classList.contains('gt-cm-disabled');
+                if (isDisabled) return;
+                var list = addBtn.closest('.gt-nozzle-right').querySelector('.gt-nozzle-list');
+                var item = makeNozzleItem('0.4 mm', false);
+                list.appendChild(item);
+                refreshNozzleRemoveBtns(list);
+            });
+        });
+
+        document.querySelectorAll('.gt-nozzle-list').forEach(function(list) {
+            list.addEventListener('click', function(e) {
+                var btn = e.target.closest('.gt-nozzle-rm');
+                if (!btn) return;
+                var item = btn.closest('.gt-nozzle-item');
+                var items = list.querySelectorAll('.gt-nozzle-item');
+                if (items.length <= 1) return;
+                item.remove();
+                refreshNozzleRemoveBtns(list);
+            });
+            // init: hide remove btn if only one
+            refreshNozzleRemoveBtns(list);
         });
     </script>
 
